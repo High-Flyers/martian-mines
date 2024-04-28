@@ -1,2 +1,3 @@
 # martian-mines
-Our system for 2024 Droniada Challenge competition Martian Mines category
+Our system for 2024 Droniada Challenge competition Martian Mines category.
+
