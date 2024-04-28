@@ -1,12 +1,13 @@
 """
 Script for collecting telemetry data alongside video capture from Intel RealSense.
 
-usage: data_collector.py [-h] [--no-telem] [--no-save]
+usage: data_collector.py [-h] [--no-telem] [--no-save] [--no-display]
 
 options:
-  -h, --help  show this help message and exit
-  --no-telem  do not gather telemetry data
-  --no-save   do not store captured video
+  -h, --help    show this help message and exit
+  --no-telem    do not gather telemetry data
+  --no-save     do not store captured video
+  --no-display  do not display video capture
 """
 
 import pyrealsense2 as rs
@@ -30,11 +31,13 @@ datetime_str = datetime.now().strftime("%m-%d-%Y %H-%M-%S")
 DATA_STORE_DIR = Path(f"data/test_data/{datetime_str}")
 
 
-def data_collector(no_save: bool = True, no_telem: bool = False):
+def data_collector(no_save: bool = True, no_telem: bool = False, no_display=False):
     """Collects telemetry data alongside video capture.
+    Press Ctrl+C to stop.
 
     :param no_save: bool, defaults to True, determines if the video capture should be saved.
     :param no_telem: bool, defaults to False, determines if the telemetry data should be gathered.
+    :param no_display: bool, defaults to False, determines if the video capture should be displayed.
     """
     pipeline = rs.pipeline()
     config = rs.config()
@@ -51,8 +54,11 @@ def data_collector(no_save: bool = True, no_telem: bool = False):
 
     if not no_save:
         os.makedirs(DATA_STORE_DIR, exist_ok=True)
-        out = cv2.VideoWriter(
-            str(DATA_STORE_DIR / "out.mp4"), 0x7634706D, FPS, RESOLUTION
+        color_out = cv2.VideoWriter(
+            str(DATA_STORE_DIR / "color_out.mp4"), 0x7634706D, FPS, RESOLUTION
+        )
+        depth_out = cv2.VideoWriter(
+            str(DATA_STORE_DIR / "depth_out.mp4"), 0x7634706D, FPS, RESOLUTION
         )
 
     data = []
@@ -83,20 +89,22 @@ def data_collector(no_save: bool = True, no_telem: bool = False):
                     interpolation=cv2.INTER_AREA,
                 )
 
-            images = np.hstack((color_image, depth_colormap))
-
             if not no_telem:
                 telem_data = telemetry.get_telem_data()
                 print(telem_data)
 
             if not no_save:
-                out.write(images)
+                color_out.write(color_image)
+                depth_out.write(depth_colormap)
                 if not no_telem:
                     data.append(telem_data)
 
-            cv2.namedWindow("RealSense", cv2.WINDOW_AUTOSIZE)
-            cv2.imshow("RealSense", images)
-            cv2.waitKey(1)
+            if not no_display:
+                cv2.namedWindow("RealSense", cv2.WINDOW_AUTOSIZE)
+                cv2.imshow("RealSense Color", color_image)
+                cv2.waitKey(1)
+                cv2.imshow("RealSense Depth", depth_colormap)
+                cv2.waitKey(1)
     finally:
         pipeline.stop()
         cv2.destroyAllWindows()
@@ -104,7 +112,8 @@ def data_collector(no_save: bool = True, no_telem: bool = False):
         if not no_save:
             with open(DATA_STORE_DIR / "data.json") as file:
                 json.dump(data, file)
-            out.release()
+            color_out.release()
+            depth_out.release()
 
 
 if __name__ == "__main__":
@@ -115,8 +124,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--no-save", action="store_true", help="do not store captured video"
     )
+    parser.add_argument(
+        "--no-display", action="store_true", help="do not display video capture"
+    )
     args = parser.parse_args()
     try:
-        data_collector(no_save=args.no_save, no_telem=args.no_telem)
+        data_collector(
+            no_save=args.no_save, no_telem=args.no_telem, no_display=args.no_display
+        )
     except ValueError as err:
         print(err)
