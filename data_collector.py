@@ -1,3 +1,14 @@
+"""
+Script for collecting telemetry data alongside video capture from Intel RealSense.
+
+usage: data_collector.py [-h] [--no-telem] [--no-save]
+
+options:
+  -h, --help  show this help message and exit
+  --no-telem  do not gather telemetry data
+  --no-save   do not store captured video
+"""
+
 import pyrealsense2 as rs
 import numpy as np
 import cv2
@@ -15,11 +26,16 @@ RESOLUTION = (1280, 720)
 
 TELEMETRY_CONNECTION_STRING = "udpin:0.0.0.0:1455"
 
-datetime_str = datetime.now().strftime('%m-%d-%Y %H-%M-%S')
-DATA_STORE_DIR = Path(f'data/test_data/{datetime_str}')
+datetime_str = datetime.now().strftime("%m-%d-%Y %H-%M-%S")
+DATA_STORE_DIR = Path(f"data/test_data/{datetime_str}")
 
 
 def data_collector(no_save: bool = True, no_telem: bool = False):
+    """Collects telemetry data alongside video capture.
+
+    :param no_save: bool, defaults to True, determines if the video capture should be saved.
+    :param no_telem: bool, defaults to False, determines if the telemetry data should be gathered.
+    """
     pipeline = rs.pipeline()
     config = rs.config()
 
@@ -35,7 +51,9 @@ def data_collector(no_save: bool = True, no_telem: bool = False):
 
     if not no_save:
         os.makedirs(DATA_STORE_DIR, exist_ok=True)
-        out = cv2.VideoWriter(str(DATA_STORE_DIR / "out.mp4"), 0x7634706d, FPS, RESOLUTION)
+        out = cv2.VideoWriter(
+            str(DATA_STORE_DIR / "out.mp4"), 0x7634706D, FPS, RESOLUTION
+        )
 
     data = []
 
@@ -67,12 +85,14 @@ def data_collector(no_save: bool = True, no_telem: bool = False):
 
             images = np.hstack((color_image, depth_colormap))
 
-            telem_data = telemetry.get_telem_data()
-            print(telem_data)
+            if not no_telem:
+                telem_data = telemetry.get_telem_data()
+                print(telem_data)
 
             if not no_save:
                 out.write(images)
-                data.append(telem_data)
+                if not no_telem:
+                    data.append(telem_data)
 
             cv2.namedWindow("RealSense", cv2.WINDOW_AUTOSIZE)
             cv2.imshow("RealSense", images)
@@ -89,10 +109,14 @@ def data_collector(no_save: bool = True, no_telem: bool = False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-telem", action="store_true", help="do not gather telemetry data")
-    parser.add_argument("--no-save", action="store_true", help="do not store captured video")
+    parser.add_argument(
+        "--no-telem", action="store_true", help="do not gather telemetry data"
+    )
+    parser.add_argument(
+        "--no-save", action="store_true", help="do not store captured video"
+    )
     args = parser.parse_args()
     try:
-        data_collector(no_save=args.no_save ,no_telem=args.no_telem)
+        data_collector(no_save=args.no_save, no_telem=args.no_telem)
     except ValueError as err:
         print(err)
