@@ -21,6 +21,7 @@ from pathlib import Path
 from datetime import datetime
 
 from drone_control.mavlink_telemetry import MavlinkTelemetry
+from utils.streamer import Streamer
 
 FPS = 30
 RESOLUTION = (1280, 720)
@@ -29,6 +30,8 @@ TELEMETRY_CONNECTION_STRING = "udpin:0.0.0.0:1455"
 
 datetime_str = datetime.now().strftime("%m-%d-%Y %H-%M-%S")
 DATA_STORE_DIR = Path(f"data/test_data/{datetime_str}")
+
+STREAM_ADRESS = "tcp://10.42.0.1:5555"
 
 
 def data_collector(
@@ -50,7 +53,7 @@ def data_collector(
     pipeline.start(config)
 
     if stream:
-        pass
+        streamer = Streamer(adress=STREAM_ADRESS, sending_fps=15, jpeg_quality=70)
 
     if not no_telem:
         telemetry = MavlinkTelemetry()
@@ -79,6 +82,10 @@ def data_collector(
 
             depth_image = np.asanyarray(depth_frame.get_data())
             color_image = np.asanyarray(color_frame.get_data())
+
+            if stream:
+                frame_to_send = cv2.resize(color_image, (640, 360))
+                streamer.add_frame_to_send(frame_to_send)
 
             depth_colormap = cv2.applyColorMap(
                 cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET
