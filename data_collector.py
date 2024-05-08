@@ -31,7 +31,9 @@ datetime_str = datetime.now().strftime("%m-%d-%Y %H-%M-%S")
 DATA_STORE_DIR = Path(f"data/test_data/{datetime_str}")
 
 
-def data_collector(no_save: bool = True, no_telem: bool = False, no_display=False):
+def data_collector(
+    stream: bool = True, no_save: bool = True, no_telem: bool = False, no_display=False
+):
     """Collects telemetry data alongside video capture.
     Press Ctrl+C to stop.
 
@@ -46,6 +48,9 @@ def data_collector(no_save: bool = True, no_telem: bool = False, no_display=Fals
     config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
 
     pipeline.start(config)
+
+    if stream:
+        pass
 
     if not no_telem:
         telemetry = MavlinkTelemetry()
@@ -108,6 +113,7 @@ def data_collector(no_save: bool = True, no_telem: bool = False, no_display=Fals
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--stream", action="store_true", help="stream color image")
     parser.add_argument(
         "--no-telem", action="store_true", help="do not gather telemetry data"
     )
@@ -120,7 +126,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     try:
         data_collector(
-            no_save=args.no_save, no_telem=args.no_telem, no_display=args.no_display
+            stream=args.stream,
+            no_save=args.no_save,
+            no_telem=args.no_telem,
+            no_display=args.no_display,
         )
     except ValueError as err:
         print(err)
