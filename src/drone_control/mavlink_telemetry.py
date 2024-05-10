@@ -5,6 +5,7 @@ from pymavlink import mavutil
 
 MESSAGES_SLEEP_TIME = 0.02
 
+
 class MavlinkTelemetry:
     def __init__(self):
         self.telem_data = self.create_telem_data()
@@ -57,7 +58,6 @@ class MavlinkTelemetry:
             else:
                 self.telem_data['heading'] = self.fixed_heading_deg
             sleep(MESSAGES_SLEEP_TIME)
-            
 
     def collect_euler_angle_data(self):
         while True:
@@ -72,4 +72,3 @@ class MavlinkTelemetry:
             msg = self.master.recv_match(type='SYS_STATUS', blocking=True)
             self.telem_data['batt'] = msg.voltage_battery / 1000.0
             sleep(MESSAGES_SLEEP_TIME)
-
