@@ -1,0 +1,29 @@
+{
+    "name": "martian-mines",
+    "image": "highflyers/martian-minimal-intel-ros",
+    "runArgs": [
+        "--net=host",
+        "--ipc=host"
+    ],
+    "containerEnv": {
+        "NVIDIA_VISIBLE_DEVICES": "all",
+        "NVIDIA_DRIVER_CAPABILITIES": "all",
+        "ROS_DOMAIN_ID": "0"
+    },
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/docker/ws/src/martian-mines,type=bind,consistency=cached", 
+    "workspaceFolder": "/home/docker/ws/src/martian-mines",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.autopep8",
+                "ms-python.flake8",
+                "ms-vscode.cmake-tools",
+                "GitHub.copilot",
+                "ms-iot.vscode-ros",
+                "natqe.reload"
+            ]
+        }
+    },
+    "postCreateCommand": "pip3 install -r requirements.txt"
+}
