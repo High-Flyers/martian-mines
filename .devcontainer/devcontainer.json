@@ -1,6 +1,6 @@
 {
     "name": "martian-mines",
-    "image": "highflyers/martian-minimal-intel-ros",
+    "image": "highflyers/martian-minimal-intel-ros:latest",
     "runArgs": [
         "--net=host",
         "--ipc=host"
