@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+    <param name="nn_model_path" value="$(find martian-mines)/src/nn_models/best.pt"/>
+    <node type="detector.py" name="detector" pkg="martian-mines" output="screen"/>
+</launch>
