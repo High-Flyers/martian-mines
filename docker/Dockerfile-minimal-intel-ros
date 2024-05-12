@@ -32,3 +32,4 @@ RUN catkin init
 WORKDIR $ROS_WORKSPACE
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["/bin/bash"]
