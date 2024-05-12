@@ -15,7 +15,7 @@ class Detector:
         self.bridge = CvBridge()
 
         # Load the YOLOv8 model
-        model_path = rospy.get_param("nn_model_path")
+        model_path = str(rospy.get_param("nn_model_path"))
         self.yolo_model = YOLO(model_path, verbose=True)
 
         # Subscribe to the video topic
