@@ -24,6 +24,7 @@ docker run --privileged --rm --gpus all -it --net host --ipc host \
 ```
 Build ros workspace and source setup script
 ```
+# inside ROS workspace
 catkin build
 source devel/setup.bash
 ```
