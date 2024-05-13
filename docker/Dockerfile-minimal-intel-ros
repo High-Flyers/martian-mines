@@ -30,3 +30,6 @@ ENV ROS_WORKSPACE=/home/docker/ws
 RUN catkin init
 
 WORKDIR $ROS_WORKSPACE
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["/bin/bash"]
