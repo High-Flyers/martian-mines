@@ -18,6 +18,8 @@ RUN sudo ldconfig
 RUN echo "export realsense2_DIR=/opt/realsense/lib/cmake/realsense2" >> ~/.bashrc
 RUN sudo apt remove opencv-* -y
 RUN sudo apt install ros-noetic-catkin ros-noetic-cv-bridge ros-noetic-tf ros-noetic-dynamic-reconfigure ros-noetic-diagnostic-updater libeigen3-dev -y
+RUN curl https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules \
+    -o /etc/udev/rules.d/99-realsense-libusb.rules
 
 RUN mkdir -p /home/user/ws/src
 WORKDIR /home/user/ws/src

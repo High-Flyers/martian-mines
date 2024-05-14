@@ -1,5 +1,12 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="real_world" default="false"/>
     <param name="nn_model_path" value="$(find martian-mines)/nn_models/best.pt"/>
     <node type="detector.py" name="detector" pkg="martian-mines" output="screen"/>
+
+
+    <!-- launch realsense camera node -->
+    <group if="$(arg real_world)">
+     <include file="$(find martian-mines)/launch/realsense.launch"></include>
+    </group>
 </launch>
