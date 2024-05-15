@@ -26,7 +26,7 @@ from utils.streamer import Streamer
 FPS = 30
 RESOLUTION = (1280, 720)
 
-TELEMETRY_CONNECTION_STRING = "udpin:0.0.0.0:1455"
+TELEMETRY_CONNECTION_STRING = "udpin:0.0.0.0:14550"
 
 datetime_str = datetime.now().strftime("%m-%d-%Y %H-%M-%S")
 DATA_STORE_DIR = Path(f"data/test_data/{datetime_str}")
@@ -112,7 +112,7 @@ def data_collector(
         cv2.destroyAllWindows()
 
         if not no_save:
-            with open(DATA_STORE_DIR / "data.json") as file:
+            with open(DATA_STORE_DIR / "data.json", "w") as file:
                 json.dump(data, file)
             color_out.release()
             depth_out.release()
