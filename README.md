@@ -37,11 +37,11 @@ roslaunch martian-mines detector.launch
 #### Emulated ARM container on x86
 
 ```bash
-docker run --platform=linux/arm64 -it --net host -v <path_to_repo>/ros:/home/user/ws/src/martian-mines highflyers/martian-mines-jetson:realsense
+docker run --platform=linux/arm64 -it --net host -v <path_to_repo>:/home/user/ws/src/martian-mines highflyers/martian-mines-jetson:realsense
 ```
 #### Running on Xavier with realsense connected (to be tested)
 ```bash
-docker run -it --net host --priviledged --runtime nvidia -v /dev/bus/usb/:/dev/bus/usb/ -v <path_to_repo>/ros:/home/user/ws/src/martian-mines highflyers/martian-mines-jetson:realsense
+docker run -it --net host --privileged --runtime nvidia -v /dev/bus/usb/:/dev/bus/usb/ -v <path_to_repo>:/home/user/ws/src/martian-mines highflyers/martian-mines-jetson:realsense
 ```
 
 #### Build ros workspace and run detector
