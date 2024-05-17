@@ -4,27 +4,11 @@ RUN pip install py-cpuinfo scipy seaborn tqdm thop matplotlib
 
 RUN sudo apt-get update && sudo apt-get install guvcview git libssl-dev libusb-1.0-0-dev pkg-config libgtk-3-dev udev libgl1-mesa-dev libglu1-mesa-dev -y
 RUN sudo apt remove opencv-* -y
-RUN sudo apt install ros-noetic-catkin ros-noetic-cv-bridge ros-noetic-tf ros-noetic-diagnostic-updater libeigen3-dev -y
+RUN sudo apt install ros-noetic-catkin ros-noetic-cv-bridge ros-noetic-tf ros-noetic-diagnostic-updater libeigen3-dev ros-noetic-realsense2-camera -y
 
-ARG REALSENSE_SOURCE_DIR=/home/user/projects/librealsense/
-RUN git clone -b v2.41.0 https://github.com/IntelRealSense/librealsense.git $REALSENSE_SOURCE_DIR
-RUN mkdir $REALSENSE_SOURCE_DIR/build
-WORKDIR $REALSENSE_SOURCE_DIR/build
-
-ARG REALSENSE_INSTALL_PREFIX=/opt/realsense
-RUN sudo mkdir -p $REALSENSE_INSTALL_PREFIX && sudo chown $USER:$USER -R $REALSENSE_INSTALL_PREFIX
-RUN cmake ../ -DFORCE_RSUSB_BACKEND=true  -DBUILD_EXAMPLES=OFF -DBUILD_GRAPHICAL_EXAMPLES=OFF -DBUILD_WITH_OPENMP=OFF -DBUILD_UNIT_TESTS=OFF -DCMAKE_BUILD_TYPE=Release -DENABLE_ZERO_COPY=ON -DFORCE_LIBUVC=OFF -DCMAKE_INSTALL_PREFIX=$REALSENSE_INSTALL_PREFIX
-RUN sudo make install -j8
-RUN sudo sh -c "echo $REALSENSE_INSTALL_PREFIX/lib > /etc/ld.so.conf.d/realsense.conf"
-RUN sudo ldconfig
-RUN echo "export realsense2_DIR=/opt/realsense/lib/cmake/realsense2" >> ~/.bashrc
 
 RUN curl https://raw.githubusercontent.com/IntelRealSense/librealsense/master/config/99-realsense-libusb.rules \
     -o /etc/udev/rules.d/99-realsense-libusb.rules
 
 RUN mkdir -p /home/user/ws/src
-WORKDIR /home/user/ws/src
-RUN git clone https://github.com/IntelRealSense/realsense-ros.git && \ 
-    cd realsense-ros && git checkout 2.2.21
-RUN git clone https://github.com/pal-robotics/ddynamic_reconfigure.git
 WORKDIR /home/user/ws
