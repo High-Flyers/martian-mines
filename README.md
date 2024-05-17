@@ -44,6 +44,11 @@ docker run --platform=linux/arm64 -it --net host -v <path_to_repo>:/home/user/ws
 docker run -it --net host --privileged --runtime nvidia -v /dev/bus/usb/:/dev/bus/usb/ -v <path_to_repo>:/home/user/ws/src/martian-mines highflyers/martian-mines-jetson:realsense
 ```
 
+#### Better: run compose on jetson
+```
+sudo docker compose run martian-mines /bin/bash
+```
+
 #### Build ros workspace and run detector
 ```bash
 catkin_make

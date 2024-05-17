@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  martian-mines:
+    image: highflyers/martian-mines-jetson:realsense
+    build: 
+      dockerfile: Dockerfile-jetson
+    runtime: nvidia
+    privileged: true
+    network_mode: host
+    volumes:
+      - /dev/bus/usb/:/dev/bus/usb/
+      - /home/hf/Documents/martian-mines:/home/user/ws/src/martian-mines

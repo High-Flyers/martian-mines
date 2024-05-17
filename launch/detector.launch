@@ -10,6 +10,12 @@
 
     <!-- launch realsense camera node -->
     <group if="$(arg real_world)">
-     <include file="$(find martian-mines)/launch/realsense.launch"></include>
+    <include file="$(find martian-mines)/launch/realsense.launch"></include>
+
+    <!-- launch mavros -->
+    <include file="$(find mavros)/launch/px4.launch">
+        <arg name="fcu_url" value="udp://:14550@localhost:14550" />
+    </include>
+
     </group>
 </launch>
