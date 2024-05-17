@@ -1,8 +1,11 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="real_world" default="false"/>
-    <param name="nn_model_path" value="$(find martian-mines)/nn_models/best.pt"/>
-    <node type="detector.py" name="detector" pkg="martian-mines" output="screen"/>
+    <node type="detector.py" name="detector" pkg="martian-mines" output="screen">
+        <param name="real_world" value="$(arg real_world)"/>
+        <param name="nn_model_path" value="$(find martian-mines)/nn_models/best.pt"/>
+        <remap if="$(arg real_world)" from="/uav0/camera/image_raw" to="/uav0/color/image_raw"/>
+    </node>
 
 
     <!-- launch realsense camera node -->

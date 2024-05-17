@@ -11,11 +11,13 @@ from std_msgs.msg import Float64
 class Detector:
     def __init__(self):
         rospy.init_node("video_subscriber", anonymous=True)
+        self.real_world = str(rospy.get_param("~real_world"))
+
 
         self.bridge = CvBridge()
 
         # Load the YOLOv8 model
-        model_path = str(rospy.get_param("nn_model_path"))
+        model_path = str(rospy.get_param("~nn_model_path"))
         self.yolo_model = YOLO(model_path, verbose=True)
 
         # Subscribe to the video topic
@@ -37,11 +39,12 @@ class Detector:
 
             annotated_frame = results[0].plot()
 
-            cv2.imshow("Og Stream", cv_image)
-            cv2.imshow("Adnotated Stream", annotated_frame)
+            if not self.real_world:
+                cv2.imshow("Og Stream", cv_image)
+                cv2.imshow("Adnotated Stream", annotated_frame)
 
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                rospy.signal_shutdown("User pressed 'q'")
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    rospy.signal_shutdown("User pressed 'q'")
 
         except Exception as e:
             rospy.logerr(f"Error in ROS Image to OpenCV image callback: {e}")
