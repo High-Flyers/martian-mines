@@ -11,7 +11,7 @@ from std_msgs.msg import Float64
 class Detector:
     def __init__(self):
         rospy.init_node("video_subscriber", anonymous=True)
-        self.real_world = str(rospy.get_param("~real_world"))
+        self.real_world = rospy.get_param("~real_world")
 
 
         self.bridge = CvBridge()
@@ -40,7 +40,6 @@ class Detector:
             annotated_frame = results[0].plot()
 
             if not self.real_world:
-                cv2.imshow("Og Stream", cv_image)
                 cv2.imshow("Adnotated Stream", annotated_frame)
 
                 if cv2.waitKey(1) & 0xFF == ord("q"):
