@@ -23,7 +23,7 @@ class BoundingBox:
         """Constructs a BoundingBox object from Ultralytics data"""
         boxes = []
         for i in range(data.data.shape[0]):
-            x1, y1, x2, y2 = data.xyxy[i].tolist()
+            x1, y1, x2, y2 = map(int, data.xyxy[i].tolist())
             label_id = int(data.cls[i].item())
             label = label_names.get(label_id, 'Unknown')
             confidence = data.conf[i].item()

@@ -16,7 +16,7 @@ class FigureManager():
             self.load()
 
         self.positioner = positioner
-        self.color_detection = ColorDetection()
+        # self.color_detection = ColorDetection()
 
     def load(self, path: str = None):
         path = path if path else "config/figure_manager.json"
@@ -37,45 +37,46 @@ class FigureManager():
         with open(path, "w") as file:
             json.dump(self.config, file)
 
-    def create_figures(self, img: np.ndarray, bounding_boxes: List[BoundingBox], telem: dict) -> List[Figure]:
+    def create_figures(self, img: np.ndarray, bounding_boxes: List[BoundingBox], altitude) -> List[Figure]:
         figures = []
 
         for bbox in bounding_boxes:
             try:  # temp fix for get figure thresh, probably caused by to small area to calculate color/thresh
-                bbox.shrink_by_offset(0.1)
+                # bbox.shrink_by_offset(0.1)
                 figure_img = bbox.get_img_piece(img)
                 fig_type = bbox.label
 
                 figure = Figure(fig_type, bbox, figure_img=figure_img)
 
-                if not self.verify_by_type(fig_type):
-                    figure.is_verified = False
-                    figure.rejection_type = RejectionType.TYPE
-                    figures.append(figure)
-                    continue
+                # if not self.verify_by_type(fig_type):
+                #     figure.is_verified = False
+                #     figure.rejection_type = RejectionType.TYPE
+                #     figures.append(figure)
+                #     continue
 
-                thresh = self.get_figure_thresh(figure_img, fig_type)
-                color = self.color_detection.get_color(figure_img, thresh)
-                figure.color = color
+                # thresh = self.get_figure_thresh(figure_img, fig_type)
+                # color = self.color_detection.get_color(figure_img, thresh)
+                # figure.color = color
 
-                if not self.verify_by_color(fig_type, color):
-                    figure.is_verified = False
-                    figure.rejection_type = RejectionType.COLOR
-                    figures.append(figure)
-                    continue
+                # if not self.verify_by_color(fig_type, color):
+                #     figure.is_verified = False
+                #     figure.rejection_type = RejectionType.COLOR
+                #     figures.append(figure)
+                #     continue
 
-                area = self.positioner.get_real_area(thresh, telem['altitude'])
-                figure.area = area
+                # area = self.positioner.get_real_area(thresh, telem['altitude'])
+                # figure.area = area
 
-                if not self.verify_by_area(fig_type, area):
-                    figure.is_verified = False
-                    figure.rejection_type = RejectionType.AREA
-                    figures.append(figure)
+                # if not self.verify_by_area(fig_type, area):
+                #     figure.is_verified = False
+                #     figure.rejection_type = RejectionType.AREA
+                #     figures.append(figure)
 
-                    continue
+                #     continue
 
-                coords = self.positioner.get_real_coords(bbox.to_point(), telem)
-                figure.coords = coords
+                xy_on_ground = self.positioner.get_pos_in_camera_frame(bbox.to_point(), altitude)
+                print(xy_on_ground)
+                figure.coords = xy_on_ground
             except Exception as e:
                 print(f"Figure creation exception: {e}")
 

@@ -74,3 +74,12 @@ class Positioner:
         longitude = math.degrees(r_lon)
 
         return (latitude, longitude)
+
+    def get_pos_in_camera_frame(self, point, altitude):
+        scale = self.__get_scale(altitude)
+        # X and Y distance [in metres] between centre points of frame and centre of figure
+        dist_x = (point[0] - self.center[0]) * scale
+        # minus in Y axis because of inverted Y coordinate in OpenCV
+        dist_y = -(point[1] - self.center[1]) * scale
+
+        return (dist_x, dist_y)
