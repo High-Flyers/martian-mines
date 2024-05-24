@@ -2,17 +2,18 @@
 
 import rospy
 import cv2
+import time
 from ultralytics import YOLO
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, NavSatFix
 from std_msgs.msg import Float64
+from figure.bounding_box import BoundingBox
 
 
 class Detector:
     def __init__(self):
         rospy.init_node("video_subscriber", anonymous=True)
         self.real_world = rospy.get_param("~real_world")
-
 
         self.bridge = CvBridge()
 
@@ -35,7 +36,12 @@ class Detector:
         try:
             # Convert ROS Image message to OpenCV image
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            start_time = time.time()
             results = self.yolo_model.predict(cv_image, verbose=False)
+            end_time = time.time()
+            inference_time = end_time - start_time
+            rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")
+            bboxes = BoundingBox.from_ultralytics(results[0].boxes, results[0].names)
 
             annotated_frame = results[0].plot()
 
@@ -54,12 +60,12 @@ class Detector:
         altitude_amsl = msg.altitude
 
         rospy.loginfo_throttle(
-            1,
+            10,
             f"Received global position: Latitude: {latitude}, Longitude: {longitude}, Altitude(AMSL): {altitude_amsl}",
         )
 
     def rel_alt_callback(self, msg):
-        rospy.loginfo_throttle(1, f"Received relative Altitude(AGL): {msg.data}")
+        rospy.loginfo_throttle(10, f"Received relative Altitude(AGL): {msg.data}")
 
     def run(self):
         rospy.spin()

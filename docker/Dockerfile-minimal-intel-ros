@@ -14,7 +14,7 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     ros-noetic-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install ultralytics
+RUN pip3 install ultralytics dill
 
 # Create and setup user
 RUN adduser --disabled-password --gecos '' docker && \
