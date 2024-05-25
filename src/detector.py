@@ -3,10 +3,13 @@
 import rospy
 import cv2
 import time
+import tf2_ros
 from ultralytics import YOLO
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, NavSatFix
 from std_msgs.msg import Float64
+from geometry_msgs.msg import PointStamped, Point
+from tf2_geometry_msgs import do_transform_point
 from figure.bounding_box import BoundingBox
 from figure_detection.figure_manager import FigureManager
 from utils.positioner import Positioner
@@ -17,7 +20,7 @@ class Detector:
         rospy.init_node("video_subscriber", anonymous=True)
         self.real_world = rospy.get_param("~real_world")
         positioner_config = {
-            "fov": 80,
+            "fov": 120,
             "res": [1920, 1080]
         }
         self.positioner = Positioner(positioner_config)
@@ -25,6 +28,8 @@ class Detector:
         self.last_frame = None
         self.last_alt_agl = None
 
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.bridge = CvBridge()
 
         # Load the YOLOv8 model
@@ -42,6 +47,15 @@ class Detector:
             "/uav0/mavros/global_position/rel_alt", Float64, self.rel_alt_callback
         )
 
+    def get_transform(self):
+        try:
+            transform = self.tf_buffer.lookup_transform("map", "camera_link_custom", rospy.Time())
+            return transform
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+            rospy.logwarn("Failed to get transform: {}".format(e))
+            return None
+
+
     def image_callback(self, msg):
         try:
             # Convert ROS Image message to OpenCV image
@@ -53,7 +67,14 @@ class Detector:
             rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")
             bboxes = BoundingBox.from_ultralytics(results[0].boxes, results[0].names)
             figures = self.figure_manager.create_figures(frame, bboxes, self.last_alt_agl)
-            # print(figures)
+            transform = self.get_transform()
+            # print(transform)
+            if transform:
+                for fig in figures:
+                    p = PointStamped()
+                    p.point = Point(*fig.local_frame_coords)
+                    point_in_local = do_transform_point(p, transform)
+                    print(f"Point in camera frame {p.point}, point in local {point_in_local.point}")
 
             annotated_frame = results[0].plot()
 
@@ -65,7 +86,6 @@ class Detector:
 
         except Exception as e:
             rospy.logerr(f"Error in ROS Image to OpenCV image callback: {e}")
-
     def global_pos_callback(self, msg):
         latitude = msg.latitude
         longitude = msg.longitude

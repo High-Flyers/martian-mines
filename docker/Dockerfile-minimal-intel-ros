@@ -12,6 +12,7 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     ros-noetic-gazebo-ros \
     ros-noetic-gazebo-ros-pkgs \
     ros-noetic-cv-bridge \
+    ros-noetic-tf2-geometry-msgs \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install ultralytics dill

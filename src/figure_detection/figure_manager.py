@@ -74,9 +74,8 @@ class FigureManager():
 
                 #     continue
 
-                xy_on_ground = self.positioner.get_pos_in_camera_frame(bbox.to_point(), altitude)
-                print(xy_on_ground)
-                figure.coords = xy_on_ground
+                xyz_from_camera = self.positioner.get_pos_in_camera_frame(bbox.to_point(), altitude)
+                figure.local_frame_coords = xyz_from_camera
             except Exception as e:
                 print(f"Figure creation exception: {e}")
 

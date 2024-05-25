@@ -81,5 +81,6 @@ class Positioner:
         dist_x = (point[0] - self.center[0]) * scale
         # minus in Y axis because of inverted Y coordinate in OpenCV
         dist_y = -(point[1] - self.center[1]) * scale
+        dist_z = altitude
 
-        return (dist_x, dist_y)
+        return (dist_x, dist_y, -dist_z)

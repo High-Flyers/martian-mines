@@ -19,7 +19,7 @@ docker run --privileged --rm --gpus all -it --net host --ipc host \
     -e NVIDIA_DRIVER_CAPABILITIES=all \
     -e ROS_DOMAIN_ID=0 \
     -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
-    -v <path_to_repo>/ros:/home/docker/ws/src/ \
+    -v <path_to_repo>:/home/docker/ws/src/martian-mines \
     highflyers/martian-minimal-intel-ros /bin/bash
 ```
 Build ros workspace and source setup script
