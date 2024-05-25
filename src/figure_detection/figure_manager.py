@@ -37,7 +37,7 @@ class FigureManager():
         with open(path, "w") as file:
             json.dump(self.config, file)
 
-    def create_figures(self, img: np.ndarray, bounding_boxes: List[BoundingBox], altitude) -> List[Figure]:
+    def create_figures(self, img: np.ndarray, bounding_boxes: List[BoundingBox], telem) -> List[Figure]:
         figures = []
 
         for bbox in bounding_boxes:
@@ -74,8 +74,9 @@ class FigureManager():
 
                 #     continue
 
-                xyz_from_camera = self.positioner.get_pos_in_camera_frame(bbox.to_point(), altitude)
+                xyz_from_camera = self.positioner.get_pos_in_camera_frame(bbox.to_point(), telem["altitude"])
                 figure.local_frame_coords = xyz_from_camera
+                figure.coords = self.positioner.get_real_coords(bbox.to_point(), telem)
             except Exception as e:
                 print(f"Figure creation exception: {e}")
 
