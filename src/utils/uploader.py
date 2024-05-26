@@ -14,7 +14,7 @@ class Uploader:
     upload_interval: float specifying the wait time between requests, default to 0.5.
     """
 
-    def __init__(self, url, upload_interval=0.5):
+    def __init__(self, url: str, upload_interval: float = 0.5) -> None:
         self._url = url
         self._data_queue = queue.Queue()
         self._upload_interval = upload_interval
@@ -22,11 +22,11 @@ class Uploader:
 
         self._thread.start()
 
-    def add(self, item):
+    def add(self, item) -> None:
         """Add an item to the sending queue."""
         self._data_queue.put(item, block=False)
 
-    def _run(self):
+    def _run(self) -> None:
         while True:
             try:
                 data = self._data_queue.get()
@@ -37,6 +37,6 @@ class Uploader:
                 print(f"Uploader error: {e=}")
             sleep(self._upload_interval)
 
-    def _send(self, data):
+    def _send(self, data: dict) -> requests.Response:
         response = requests.post(self._url, data=data)
         return response
