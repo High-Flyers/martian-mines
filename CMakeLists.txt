@@ -21,6 +21,7 @@ include_directories(
 
 catkin_install_python(PROGRAMS
   src/detector.py
+  src/precision_landing.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
