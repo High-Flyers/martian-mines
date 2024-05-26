@@ -4,7 +4,8 @@ camera:
 
 figure_collector:
   group_num_instances: 7
-  group_dist_thresh: 3
+  group_dist_thresh: 1.5
+  use_local_coords: true
 
 #additional settings
 upload_data: true

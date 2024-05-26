@@ -13,6 +13,7 @@ from geometry_msgs.msg import PointStamped, Point
 from tf2_geometry_msgs import do_transform_point
 from figure.bounding_box import BoundingBox
 from figure_detection.figure_manager import FigureManager
+from figure_detection.figure_collector import FigureCollector
 from utils.positioner import Positioner
 
 
@@ -25,6 +26,7 @@ class Detector:
 
         self.positioner = Positioner(self.config["camera"])
         self.figure_manager = FigureManager(self.positioner, False)
+        self.figure_collector = FigureCollector(self.config["figure_collector"])
         self.last_telem = {}
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -43,6 +45,8 @@ class Detector:
             "/uav0/mavros/global_position/rel_alt", Float64, self.rel_alt_callback
         )
         self.compass_subscriber = rospy.Subscriber('/uav0/mavros/global_position/compass_hdg', Float64, self.compass_callback)
+        self.figure_pose_pub = rospy.Publisher('figure_pose', PointStamped, queue_size=10)
+
 
     def get_transform(self):
         try:
@@ -53,7 +57,7 @@ class Detector:
             return None
 
     def image_callback(self, msg):
-        try:
+        # try:
             frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             start_time = time.time()
             results = self.yolo_model.predict(frame, verbose=False)
@@ -69,7 +73,14 @@ class Detector:
                     p.point = Point(*fig.local_frame_coords)
                     point_in_local = do_transform_point(p, transform)
                     fig.local_frame_coords = (point_in_local.point.x, point_in_local.point.y, point_in_local.point.z)
-            print(figures)
+                    self.figure_pose_pub.publish(point_in_local)
+
+
+            # print(figures)
+            # self.figure_collector.update(figures)
+            # confirmed_figures = self.figure_collector.confirm_figures()
+            # if confirmed_figures:
+            #     print("CONFIRMED FIGURES:", confirmed_figures)
 
             annotated_frame = results[0].plot()
 
@@ -79,8 +90,8 @@ class Detector:
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     rospy.signal_shutdown("User pressed 'q'")
 
-        except Exception as e:
-            rospy.logerr(f"Error in ROS Image to OpenCV image callback: {e}")
+        # except Exception as e:
+        #     rospy.logerr(f"Error in ROS Image to OpenCV image callback: {e}")
 
     def global_pos_callback(self, msg):
 

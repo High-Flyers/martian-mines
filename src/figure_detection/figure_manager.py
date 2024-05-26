@@ -73,8 +73,7 @@ class FigureManager():
                 #     figures.append(figure)
 
                 #     continue
-
-                xyz_from_camera = self.positioner.get_pos_in_camera_frame(bbox.to_point(), telem["altitude"])
+                xyz_from_camera = self.positioner.get_pos_in_camera_frame(bbox.to_point(), telem)
                 figure.local_frame_coords = xyz_from_camera
                 figure.coords = self.positioner.get_real_coords(bbox.to_point(), telem)
             except Exception as e:

@@ -75,12 +75,12 @@ class Positioner:
 
         return (latitude, longitude)
 
-    def get_pos_in_camera_frame(self, point, altitude):
-        scale = self.__get_scale(altitude)
+    def get_pos_in_camera_frame(self, point, drone_telem):
+        scale = self.__get_scale(drone_telem['altitude'])
         # X and Y distance [in metres] between centre points of frame and centre of figure
         dist_x = (point[0] - self.center[0]) * scale
         # minus in Y axis because of inverted Y coordinate in OpenCV
         dist_y = -(point[1] - self.center[1]) * scale
-        dist_z = altitude
+        dist_z = drone_telem['altitude']
 
         return (dist_x, dist_y, -dist_z)
