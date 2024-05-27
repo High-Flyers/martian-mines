@@ -20,6 +20,38 @@ def get_coords_distance(coords1, coords2):
     return distance * 1000
 
 
+def plane_line_intersection(plane_normal, plane_point, line_direction, line_point):
+    """
+    Calculate the intersection point between a plane and a line.
+
+    :param plane_normal: Normal vector of the plane
+    :param plane_point: A point on the plane
+    :param line_direction: Direction vector of the line
+    :param line_point: A point on the line
+    :return: Intersection point as a tuple (x, y, z) or None if the line is parallel to the plane
+    """
+    # Calculate the parameter t for the line equation
+    t = ((plane_point[0] - line_point[0]) * plane_normal[0] +
+         (plane_point[1] - line_point[1]) * plane_normal[1] +
+         (plane_point[2] - line_point[2]) * plane_normal[2]) / (
+        line_direction[0] * plane_normal[0] +
+        line_direction[1] * plane_normal[1] +
+        line_direction[2] * plane_normal[2])
+
+    # If the denominator is close to 0, the line is parallel to the plane
+    if abs(line_direction[0] * plane_normal[0] +
+            line_direction[1] * plane_normal[1] +
+            line_direction[2] * plane_normal[2]) < 1e-6:
+        return None
+
+    # Calculate the intersection point
+    intersection_point = (line_point[0] + t * line_direction[0],
+                          line_point[1] + t * line_direction[1],
+                          line_point[2] + t * line_direction[2])
+
+    return intersection_point
+
+
 class Positioner:
     def __init__(self, config):
         self.camera_fov = config["fov"]

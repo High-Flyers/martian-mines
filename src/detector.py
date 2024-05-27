@@ -5,16 +5,19 @@ import cv2
 import time
 import tf2_ros
 import yaml
+from typing import List
 from ultralytics import YOLO
 from cv_bridge import CvBridge
-from sensor_msgs.msg import Image, NavSatFix
+from sensor_msgs.msg import Image, NavSatFix, CameraInfo
 from std_msgs.msg import Float64
-from geometry_msgs.msg import PointStamped, Point
-from tf2_geometry_msgs import do_transform_point
+from geometry_msgs.msg import PointStamped, Vector3Stamped
+from tf2_geometry_msgs import do_transform_vector3
+from image_geometry import PinholeCameraModel
 from figure.bounding_box import BoundingBox
 from figure_detection.figure_manager import FigureManager
 from figure_detection.figure_collector import FigureCollector
-from utils.positioner import Positioner
+from utils.positioner import Positioner, plane_line_intersection
+from figure.figure import Figure
 
 
 class Detector:
@@ -45,53 +48,73 @@ class Detector:
             "/uav0/mavros/global_position/rel_alt", Float64, self.rel_alt_callback
         )
         self.compass_subscriber = rospy.Subscriber('/uav0/mavros/global_position/compass_hdg', Float64, self.compass_callback)
+        camera_info_msg = rospy.wait_for_message('/uav0/camera/camera_info', CameraInfo)
+        print("Camera info received")
+
+        self.camera_model = PinholeCameraModel()
+        self.camera_model.fromCameraInfo(camera_info_msg)
         self.figure_pose_pub = rospy.Publisher('figure_pose', PointStamped, queue_size=10)
 
-
-    def get_transform(self):
+    def get_transform(self, base_frame="map", to_frame="camera_link_custom"):
         try:
-            transform = self.tf_buffer.lookup_transform("map", "camera_link_custom", rospy.Time())
+            transform = self.tf_buffer.lookup_transform(base_frame, to_frame, rospy.Time())
             return transform
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
             rospy.logwarn("Failed to get transform: {}".format(e))
             return None
 
+    def create_figures(self, frame, bboxes: List[BoundingBox]):
+        figures = []
+
+        for bbox in bboxes:
+            try:
+                figure_img = bbox.get_img_piece(frame)
+                fig_type = bbox.label
+
+                figure = Figure(fig_type, bbox, figure_img=figure_img)
+                ray = self.camera_model.projectPixelTo3dRay(bbox.to_point())
+                transform = self.get_transform("map", "camera_link_custom")
+                if transform:
+                    vector = Vector3Stamped()
+                    vector.vector.x = ray[0]
+                    vector.vector.y = -ray[1]
+                    vector.vector.z = -ray[2]
+                    transformed_ray = do_transform_vector3(vector, transform)
+
+                    camera_pose = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
+                    plane_normal = (0, 0, 1)  # Normal vector of the plane
+                    plane_point = (0, 0, 0)    # A point on the plane (any point where z=0)
+                    ray_direction = (transformed_ray.vector.x, transformed_ray.vector.y, transformed_ray.vector.z)
+                    intersection = plane_line_intersection(plane_normal, plane_point, ray_direction, camera_pose)
+                    if not intersection:
+                        rospy.logwarn("The line is parallel to the plane, cannot get intersection.")
+
+                    figure.local_frame_coords = intersection
+            except Exception as e:
+                print(f"Figure creation exception: {e}")
+
+            figures.append(figure)
+
+        return figures
+
     def image_callback(self, msg):
-        # try:
-            frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-            start_time = time.time()
-            results = self.yolo_model.predict(frame, verbose=False)
-            end_time = time.time()
-            inference_time = end_time - start_time
-            rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")
-            bboxes = BoundingBox.from_ultralytics(results[0].boxes, results[0].names)
-            figures = self.figure_manager.create_figures(frame, bboxes, self.last_telem)
-            transform = self.get_transform()
-            if transform:
-                for fig in figures:
-                    p = PointStamped()
-                    p.point = Point(*fig.local_frame_coords)
-                    point_in_local = do_transform_point(p, transform)
-                    fig.local_frame_coords = (point_in_local.point.x, point_in_local.point.y, point_in_local.point.z)
-                    self.figure_pose_pub.publish(point_in_local)
+        frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        start_time = time.time()
+        results = self.yolo_model.predict(frame, verbose=False)
+        end_time = time.time()
+        inference_time = end_time - start_time
+        rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")
+        bboxes = BoundingBox.from_ultralytics(results[0].boxes, results[0].names)
+        figures = self.create_figures(frame, bboxes)
+        print("Figures: ", figures)
 
+        annotated_frame = results[0].plot()
 
-            # print(figures)
-            # self.figure_collector.update(figures)
-            # confirmed_figures = self.figure_collector.confirm_figures()
-            # if confirmed_figures:
-            #     print("CONFIRMED FIGURES:", confirmed_figures)
+        if not self.real_world:
+            cv2.imshow("Adnotated Stream", annotated_frame)
 
-            annotated_frame = results[0].plot()
-
-            if not self.real_world:
-                cv2.imshow("Adnotated Stream", annotated_frame)
-
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    rospy.signal_shutdown("User pressed 'q'")
-
-        # except Exception as e:
-        #     rospy.logerr(f"Error in ROS Image to OpenCV image callback: {e}")
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                rospy.signal_shutdown("User pressed 'q'")
 
     def global_pos_callback(self, msg):
 
