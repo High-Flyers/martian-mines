@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+    <group ns="uav0">
+        <node type="precision_landing.py" name="precision_landing" pkg="martian_mines" output="screen"/>
+        <node type="bbox_publisher.py" name="bbox_publisher" pkg="martian_mines" output="screen"/>
+    </group>
+</launch>
