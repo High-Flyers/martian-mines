@@ -77,8 +77,8 @@ class Detector:
                 if transform:
                     vector = Vector3Stamped()
                     vector.vector.x = ray[0]
-                    vector.vector.y = -ray[1]
-                    vector.vector.z = -ray[2]
+                    vector.vector.y = ray[1]
+                    vector.vector.z = ray[2]
                     transformed_ray = do_transform_vector3(vector, transform)
 
                     camera_pose = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
