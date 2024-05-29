@@ -13,11 +13,11 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     ros-noetic-gazebo-ros \
     ros-noetic-gazebo-ros-pkgs \
     ros-noetic-cv-bridge \
-    ros-noetic-image-geometry \
     ros-noetic-tf2-geometry-msgs \
+    ros-noetic-image-geometry \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install ultralytics
+RUN pip3 install ultralytics dill
 
 # Create and setup user
 RUN adduser --disabled-password --gecos '' docker && \
