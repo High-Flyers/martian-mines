@@ -49,7 +49,6 @@ sudo docker compose run martian-mines /bin/bash
 ```bash
 catkin_make
 source devel/setup.bash
-cd src/martian-mines && pip install -e . --no-deps
 roslaunch martian-mines realsense.launch # to run only realsense
 roslaunch martian-mines detector.launch real_world:=true # to run detector with realworld config
 ```

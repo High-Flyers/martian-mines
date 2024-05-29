@@ -5,6 +5,7 @@ import cv2
 import time
 import tf2_ros
 import yaml
+import pyrr
 from typing import List
 from ultralytics import YOLO
 from cv_bridge import CvBridge
@@ -14,7 +15,6 @@ from geometry_msgs.msg import Vector3Stamped
 from tf2_geometry_msgs import do_transform_vector3
 from image_geometry import PinholeCameraModel
 from figure.bounding_box import BoundingBox
-from utils.positioner import plane_line_intersection
 from figure.figure import Figure
 
 
@@ -56,6 +56,27 @@ class Detector:
             rospy.logwarn(f"Failed to get transform: {e}")
             return None
 
+    def bbox_to_ground_position(self, bbox: BoundingBox):
+        ray_camera_frame = self.camera_model.projectPixelTo3dRay(bbox.to_point())
+        transform = self.get_transform("map", "camera_link_custom")
+        if transform:
+            vector = Vector3Stamped()
+            vector.vector.x = ray_camera_frame[0]
+            vector.vector.y = ray_camera_frame[1]
+            vector.vector.z = ray_camera_frame[2]
+            transformed_ray = do_transform_vector3(vector, transform)
+
+            camera_position = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
+            ray_direction = (transformed_ray.vector.x, transformed_ray.vector.y, transformed_ray.vector.z)
+            ray_local_frame = pyrr.ray.create(camera_position, ray_direction)
+            plane = pyrr.plane.create()
+            intersection_point = pyrr.geometric_tests.ray_intersect_plane(ray_local_frame, plane)
+            if intersection_point is not None:
+                return intersection_point
+            rospy.logwarn("The line is parallel to the plane, cannot get intersection.")
+
+        return (0, 0, 0)
+
     def create_figures(self, frame, bboxes: List[BoundingBox]):
         figures = []
 
@@ -63,26 +84,8 @@ class Detector:
             try:
                 figure_img = bbox.get_img_piece(frame)
                 fig_type = bbox.label
-
-                figure = Figure(fig_type, bbox, figure_img=figure_img)
-                ray = self.camera_model.projectPixelTo3dRay(bbox.to_point())
-                transform = self.get_transform("map", "camera_link_custom")
-                if transform:
-                    vector = Vector3Stamped()
-                    vector.vector.x = ray[0]
-                    vector.vector.y = ray[1]
-                    vector.vector.z = ray[2]
-                    transformed_ray = do_transform_vector3(vector, transform)
-
-                    camera_pose = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
-                    plane_normal = (0, 0, 1)  # Normal vector of the plane
-                    plane_point = (0, 0, 0)    # A point on the plane (any point where z=0)
-                    ray_direction = (transformed_ray.vector.x, transformed_ray.vector.y, transformed_ray.vector.z)
-                    intersection = plane_line_intersection(plane_normal, plane_point, ray_direction, camera_pose)
-                    if not intersection:
-                        rospy.logwarn("The line is parallel to the plane, cannot get intersection.")
-
-                    figure.local_frame_coords = intersection
+                local_position = self.bbox_to_ground_position(bbox)
+                figure = Figure(fig_type, bbox, figure_img=figure_img, local_frame_coords=local_position)
             except Exception as e:
                 rospy.logwarn(f"Figure creation exception: {e}")
 

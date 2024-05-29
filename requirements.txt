@@ -18,3 +18,4 @@ pyrealsense2==2.55.1.6486
 pyzmq==26.0.3; python_version >= '3.7'
 tomli==2.0.1; python_version >= '3.7'
 typing-extensions==4.11.0; python_version >= '3.8'
+pyrr==0.10.3; python_version >= '3.6'
