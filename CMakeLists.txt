@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(martian-mines)
+project(martian_mines)
 
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
@@ -21,5 +21,8 @@ include_directories(
 
 catkin_install_python(PROGRAMS
   src/detector.py
+  src/precision_landing.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+catkin_python_setup()

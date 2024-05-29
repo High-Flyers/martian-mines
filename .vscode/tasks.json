@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "catkin",
+			"args": [
+				"build",
+				"--workspace",
+				"/home/docker/ws/",
+				"-DCMAKE_EXPORT_COMPILE_COMMANDS=1"
+			],
+			"problemMatcher": [
+				"$catkin-gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"label": "catkin: build"
+		}
+	]
+}
