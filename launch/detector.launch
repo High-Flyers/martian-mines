@@ -3,11 +3,11 @@
     <!--px4 environment variables-->
     <env name="PX4_SIM_SPEED_FACTOR" value="1"/>
     <arg name="real_world" default="false"/>
-    <arg name="config_file" default="$(find martian-mines)/config/sim.yaml"/>
-    <node type="detector.py" name="detector" pkg="martian-mines" output="screen">
+    <arg name="config_file" default="$(find martian_mines)/config/sim.yaml"/>
+    <node type="detector.py" name="detector" pkg="martian_mines" output="screen">
         <param name="real_world" value="$(arg real_world)"/>
         <param name="config_file_path" value="$(arg config_file)"/>
-        <param name="nn_model_path" value="$(find martian-mines)/nn_models/n_20ep.pt"/>
+        <param name="nn_model_path" value="$(find martian_mines)/nn_models/n_20ep.pt"/>
         <remap if="$(arg real_world)" from="/uav0/camera/image_raw" to="/uav0/color/image_raw"/>
     </node>
 
@@ -17,7 +17,7 @@
 
     <!-- launch realsense camera node -->
     <group if="$(arg real_world)">
-    <include file="$(find martian-mines)/launch/realsense.launch"></include>
+    <include file="$(find martian_mines)/launch/realsense.launch"></include>
 
     <!-- launch mavros -->
     <include file="$(find mavros)/launch/px4.launch">

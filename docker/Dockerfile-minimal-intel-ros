@@ -17,7 +17,7 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     ros-noetic-image-geometry \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install ultralytics dill
+RUN pip3 install ultralytics dill pyrr
 
 # Create and setup user
 RUN adduser --disabled-password --gecos '' docker && \
