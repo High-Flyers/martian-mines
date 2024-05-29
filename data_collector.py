@@ -20,7 +20,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-from drone_control.mavlink_telemetry import MavlinkTelemetry
+from drone.mavlink_telemetry import MavlinkTelemetry
 from utils.streamer import Streamer
 
 FPS = 30
