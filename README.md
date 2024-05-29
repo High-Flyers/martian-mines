@@ -47,8 +47,17 @@ sudo docker compose run martian-mines /bin/bash
 
 #### Build ros workspace and run detector
 ```bash
-catkin_make
+catkin build
 source devel/setup.bash
 roslaunch martian-mines realsense.launch # to run only realsense
 roslaunch martian-mines detector.launch real_world:=true # to run detector with realworld config
+```
+#### Setup scrip can be used build workspace and optionally setup IP adresses to allow ros communication between two computers
+```bash
+# only build and source
+source src/martian-mines/scripts/setup.sh
+# for setup ip for master
+source src/martian-mines/scripts/setup.sh master <master_ip>
+# for setup ip for client
+source src/martian-mines/scripts/setup.sh client <master_ip> <client_ip>
 ```
