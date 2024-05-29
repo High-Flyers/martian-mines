@@ -22,11 +22,10 @@ docker run --privileged --rm --gpus all -it --net host --ipc host \
     -v <path_to_repo>:/home/docker/ws/src/martian-mines \
     highflyers/martian-minimal-intel-ros /bin/bash
 ```
-Build ros workspace and source setup script
+Build ros workspace and our package:
 ```
-# inside ROS workspace
-catkin build
-source devel/setup.bash
+source src/martian-mines/scripts/setup.sh
+
 ```
 Run our detector - it should show a preview of video from simulation, with marked detected objects.
 ```
@@ -39,13 +38,10 @@ roslaunch martian-mines detector.launch
 ```bash
 docker run --platform=linux/arm64 -it --net host -v <path_to_repo>:/home/user/ws/src/martian-mines highflyers/martian-mines-jetson:realsense
 ```
-#### Running on Xavier with realsense connected (to be tested)
-```bash
-docker run -it --net host --privileged --runtime nvidia -v /dev/bus/usb/:/dev/bus/usb/ -v <path_to_repo>:/home/user/ws/src/martian-mines highflyers/martian-mines-jetson:realsense
-```
 
-#### Better: run compose on jetson
+#### Run compose on jetson:
 ```
+cd docker
 sudo docker compose run martian-mines /bin/bash
 ```
 
@@ -53,6 +49,7 @@ sudo docker compose run martian-mines /bin/bash
 ```bash
 catkin_make
 source devel/setup.bash
+cd src/martian-mines && pip install -e . --no-deps
 roslaunch martian-mines realsense.launch # to run only realsense
-roslaunch martian-mines detector.launch real_world:=true # to run detector with realsense
+roslaunch martian-mines detector.launch real_world:=true # to run detector with realworld config
 ```

@@ -10,13 +10,11 @@ from ultralytics import YOLO
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, NavSatFix, CameraInfo
 from std_msgs.msg import Float64
-from geometry_msgs.msg import PointStamped, Vector3Stamped
+from geometry_msgs.msg import Vector3Stamped
 from tf2_geometry_msgs import do_transform_vector3
 from image_geometry import PinholeCameraModel
 from figure.bounding_box import BoundingBox
-from figure_detection.figure_manager import FigureManager
-from figure_detection.figure_collector import FigureCollector
-from utils.positioner import Positioner, plane_line_intersection
+from utils.positioner import plane_line_intersection
 from figure.figure import Figure
 
 
@@ -25,17 +23,13 @@ class Detector:
         rospy.init_node("video_subscriber", anonymous=True)
         self.real_world = rospy.get_param("~real_world")
         config_file_path = rospy.get_param("~config_file_path")
+        model_path = str(rospy.get_param("~nn_model_path"))
         self.config = yaml.safe_load(open(config_file_path))
 
-        self.positioner = Positioner(self.config["camera"])
-        self.figure_manager = FigureManager(self.positioner, False)
-        self.figure_collector = FigureCollector(self.config["figure_collector"])
         self.last_telem = {}
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.bridge = CvBridge()
-
-        model_path = str(rospy.get_param("~nn_model_path"))
         self.yolo_model = YOLO(model_path, verbose=True)
 
         self.image_sub = rospy.Subscriber(
@@ -49,18 +43,17 @@ class Detector:
         )
         self.compass_subscriber = rospy.Subscriber('/uav0/mavros/global_position/compass_hdg', Float64, self.compass_callback)
         camera_info_msg = rospy.wait_for_message('/uav0/camera/camera_info', CameraInfo)
-        print("Camera info received")
+        rospy.loginfo("Camera info received")
 
         self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(camera_info_msg)
-        self.figure_pose_pub = rospy.Publisher('figure_pose', PointStamped, queue_size=10)
 
     def get_transform(self, base_frame="map", to_frame="camera_link_custom"):
         try:
             transform = self.tf_buffer.lookup_transform(base_frame, to_frame, rospy.Time())
             return transform
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
-            rospy.logwarn("Failed to get transform: {}".format(e))
+            rospy.logwarn(f"Failed to get transform: {e}")
             return None
 
     def create_figures(self, frame, bboxes: List[BoundingBox]):
@@ -91,7 +84,7 @@ class Detector:
 
                     figure.local_frame_coords = intersection
             except Exception as e:
-                print(f"Figure creation exception: {e}")
+                rospy.logwarn(f"Figure creation exception: {e}")
 
             figures.append(figure)
 
@@ -106,7 +99,8 @@ class Detector:
         rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")
         bboxes = BoundingBox.from_ultralytics(results[0].boxes, results[0].names)
         figures = self.create_figures(frame, bboxes)
-        print("Figures: ", figures)
+        if figures:
+            print("Figures: ", figures)
 
         annotated_frame = results[0].plot()
 
@@ -117,7 +111,6 @@ class Detector:
                 rospy.signal_shutdown("User pressed 'q'")
 
     def global_pos_callback(self, msg):
-
         self.last_telem["latitude"] = msg.latitude
         self.last_telem["longitude"] = msg.longitude
         self.last_telem["altitude_amsl"] = msg.altitude
