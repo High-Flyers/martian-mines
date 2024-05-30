@@ -1,8 +1,6 @@
 """
 Reference materials:
 - https://stackoverflow.com/questions/7477003/calculating-new-longitude-latitude-from-old-n-meters
-- http://www.edwilliams.org/avform147.htm#LL
-- https://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
 - https://en.wikipedia.org/wiki/Geographic_coordinate_system
 - https://en.wikipedia.org/wiki/Rotation_of_axes_in_two_dimensions
 """
