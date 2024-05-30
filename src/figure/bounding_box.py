@@ -1,12 +1,12 @@
 import numpy as np
 
-from typing import Tuple
+from typing import List
 
 
 class BoundingBox:
     """Base class for all detectors"""
 
-    def __init__(self, coords: Tuple[int, int, int, int] = (0, 0, 0, 0), label: str = '', confidence: float = 0):
+    def __init__(self, coords: List[int] = (0, 0, 0, 0), label: str = '', confidence: float = 0):
         """
         coords list[ left_top_x, left_top_y, right_bot_x, right_bot_y]
         label - string
@@ -27,7 +27,7 @@ class BoundingBox:
             label_id = int(data.cls[i].item())
             label = label_names.get(label_id, 'Unknown')
             confidence = data.conf[i].item()
-            boxes.append(cls((x1, y1, x2, y2), label, confidence))
+            boxes.append(cls([x1, y1, x2, y2], label, confidence))
         return boxes
 
     def __str__(self) -> str:

@@ -6,6 +6,7 @@ import time
 import tf2_ros
 import yaml
 import pyrr
+import numpy as np
 from typing import List
 from ultralytics import YOLO
 from cv_bridge import CvBridge
@@ -16,6 +17,8 @@ from tf2_geometry_msgs import do_transform_vector3
 from image_geometry import PinholeCameraModel
 from figure.bounding_box import BoundingBox
 from figure.figure import Figure
+from figure_managment.figure_collector import FigureCollector
+from color_detection import ColorDetection
 
 
 class Detector:
@@ -24,6 +27,7 @@ class Detector:
         self.real_world = rospy.get_param("~real_world")
         config_file_path = rospy.get_param("~config_file_path")
         model_path = str(rospy.get_param("~nn_model_path"))
+        color_detection_config = str(rospy.get_param("~color_detection_config_path"))
         self.config = yaml.safe_load(open(config_file_path))
 
         self.last_telem = {}
@@ -31,6 +35,7 @@ class Detector:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.bridge = CvBridge()
         self.yolo_model = YOLO(model_path, verbose=True)
+        self.figure_colletor = FigureCollector(self.config["figure_collector"])
 
         self.image_sub = rospy.Subscriber(
             "/uav0/camera/image_raw", Image, self.image_callback
@@ -47,6 +52,8 @@ class Detector:
 
         self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(camera_info_msg)
+
+        self.color_detection = ColorDetection(color_detection_config)
 
     def get_transform(self, base_frame="map", to_frame="camera_link_custom"):
         try:
@@ -82,14 +89,18 @@ class Detector:
 
         for bbox in bboxes:
             try:
+                bbox.shrink_by_offset(0.25)  # get rid of the grass around the plane
                 figure_img = bbox.get_img_piece(frame)
                 fig_type = bbox.label
                 local_position = self.bbox_to_ground_position(bbox)
                 figure = Figure(fig_type, bbox, figure_img=figure_img, local_frame_coords=local_position)
+                dominant_colors = self.color_detection.get_dominant_colors(figure_img, 2, show=True)
+                color = self.color_detection.get_matching_color(dominant_colors)
+                print(f"Color: {color}")
+                figure.color = color
+                figures.append(figure)
             except Exception as e:
                 rospy.logwarn(f"Figure creation exception: {e}")
-
-            figures.append(figure)
 
         return figures
 
@@ -100,12 +111,14 @@ class Detector:
         end_time = time.time()
         inference_time = end_time - start_time
         rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")
+        annotated_frame = results[0].plot()
         bboxes = BoundingBox.from_ultralytics(results[0].boxes, results[0].names)
         figures = self.create_figures(frame, bboxes)
-        if figures:
-            print("Figures: ", figures)
 
-        annotated_frame = results[0].plot()
+        self.figure_colletor.update(figures)
+        confirmed_figures = self.figure_colletor.confirm_figures()
+        if confirmed_figures:
+            print("Confirmed figures: ", confirmed_figures)
 
         if not self.real_world:
             cv2.imshow("Adnotated Stream", annotated_frame)

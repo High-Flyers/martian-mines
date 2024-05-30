@@ -4,10 +4,12 @@
     <env name="PX4_SIM_SPEED_FACTOR" value="1"/>
     <arg name="real_world" default="false"/>
     <arg name="config_file" default="$(find martian_mines)/config/sim.yaml"/>
+    <arg name="color_detection_config" default="$(find martian_mines)/config/color_detection_sim.json"/>
     <node type="detector.py" name="detector" pkg="martian_mines" output="screen">
         <param name="real_world" value="$(arg real_world)"/>
         <param name="config_file_path" value="$(arg config_file)"/>
         <param name="nn_model_path" value="$(find martian_mines)/nn_models/n_20ep.pt"/>
+        <param name="color_detection_config_path" value="$(arg color_detection_config)"/>
         <remap if="$(arg real_world)" from="/uav0/camera/image_raw" to="/uav0/color/image_raw"/>
     </node>
 

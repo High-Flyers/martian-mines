@@ -18,6 +18,7 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install ultralytics dill pyrr
+RUN pip3 install -U numpy
 
 # Create and setup user
 RUN adduser --disabled-password --gecos '' docker && \
