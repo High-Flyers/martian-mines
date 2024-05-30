@@ -27,7 +27,7 @@ class CoordinateScaler:
 
     def scale(self, x: float, y: float) -> Tuple[float, float]:
         """Scales the xy local coordinates to global values based on the offboard position and heading."""
-        north_offset, east_offset = self.__on_rotated_axes(x, y)
+        east_offset, north_offset = self.__on_rotated_axes(x, y)
         lat, lon = self.__get_latitude(north_offset), self.__get_longitude(east_offset)
         return lat, lon
 
