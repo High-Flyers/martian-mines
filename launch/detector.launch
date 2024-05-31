@@ -11,19 +11,21 @@
         <remap if="$(arg real_world)" from="/uav0/camera/image_raw" to="/uav0/color/image_raw"/>
         <remap if="$(arg real_world)" from="/uav0/camera/camera_info" to="/uav0/color/camera_info"/>
     </node>
-
-    <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
-      args="0 0 0 -1.571 0 -1.571 cgo3_camera_link camera_link"/> 
-
-
+    <group unless="$(arg real_world)">
+        <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
+            args="0 0 -0.2 -1.571 0 -1.571 cgo3_camera_link camera_link"/> 
+    </group>
     <!-- launch realsense camera node -->
     <group if="$(arg real_world)">
-    <include file="$(find martian_mines)/launch/realsense.launch"></include>
+        <include file="$(find martian_mines)/launch/realsense.launch"></include>
 
-    <!-- launch mavros -->
-    <include file="$(find mavros)/launch/px4.launch">
-        <arg name="fcu_url" value="udp://:14550@localhost:14550" />
-    </include>
-    <rosparam param="/mavros/local_position/tf/send">true</rosparam>
+        <!-- launch mavros -->
+        <include ns="uav0" file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="udp://:14550@localhost:14550" />
+        </include>
+        <rosparam param="uav0/mavros/local_position/tf/send">true</rosparam>
+        <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
+        args="0.18 0 -0.1 0 0 0 base_link camera_link"/> 
+
     </group>
 </launch>
