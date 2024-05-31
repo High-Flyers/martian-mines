@@ -13,7 +13,7 @@
     </node>
 
     <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
-      args="0 0 0 -1.571 0 -1.571 cgo3_camera_link camera_link_custom"/> 
+      args="0 0 0 -1.571 0 -1.571 cgo3_camera_link camera_link"/> 
 
 
     <!-- launch realsense camera node -->
@@ -24,6 +24,6 @@
     <include file="$(find mavros)/launch/px4.launch">
         <arg name="fcu_url" value="udp://:14550@localhost:14550" />
     </include>
-
+    <rosparam param="/mavros/local_position/tf/send">true</rosparam>
     </group>
 </launch>

@@ -48,7 +48,7 @@ class Detector:
         self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(camera_info_msg)
 
-    def get_transform(self, base_frame="map", to_frame="camera_link_custom"):
+    def get_transform(self, base_frame="map", to_frame="camera_link"):
         try:
             transform = self.tf_buffer.lookup_transform(base_frame, to_frame, rospy.Time())
             return transform
@@ -58,7 +58,7 @@ class Detector:
 
     def bbox_to_ground_position(self, bbox: BoundingBox):
         ray_camera_frame = self.camera_model.projectPixelTo3dRay(bbox.to_point())
-        transform = self.get_transform("map", "camera_link_custom")
+        transform = self.get_transform("map", "camera_link")
         if transform:
             vector = Vector3Stamped()
             vector.vector.x = ray_camera_frame[0]
