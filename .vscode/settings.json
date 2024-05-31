@@ -1,9 +1,11 @@
 {
     "ros.distro": "noetic",
     "python.autoComplete.extraPaths": [
+        "/home/docker/ws/devel/lib/python3/dist-packages",
         "/opt/ros/noetic/lib/python3/dist-packages"
     ],
     "python.analysis.extraPaths": [
+        "/home/docker/ws/devel/lib/python3/dist-packages",
         "/opt/ros/noetic/lib/python3/dist-packages"
     ],
     "ros.rosSetupScript": "/home/docker/ws/devel/setup.bash",

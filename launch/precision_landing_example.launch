@@ -2,6 +2,7 @@
 <launch>
     <group ns="uav0">
         <node type="precision_landing.py" name="precision_landing" pkg="martian_mines" output="screen"/>
-        <node type="bbox_publisher.py" name="bbox_publisher" pkg="martian_mines" output="screen"/>
+        <node type="detection.py" name="detection" pkg="martian_mines" output="screen"/>
+        <node type="land_on_target.py" name="land_on_target" pkg="martian_mines" output="screen"/>
     </group>
 </launch>
