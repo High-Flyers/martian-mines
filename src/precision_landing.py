@@ -8,9 +8,9 @@ from drone.offboard import Offboard
 from tf2_ros import Buffer, TransformListener
 from image_geometry import PinholeCameraModel
 from tf2_geometry_msgs import PoseStamped
-from geometry_msgs.msg import PointStamped, Point
+from geometry_msgs.msg import PointStamped, Point, Pose
 from vision_msgs.msg import BoundingBox2D
-from std_srvs.srv import Trigger, TriggerResponse
+from std_srvs.srv import Trigger, TriggerResponse, Empty
 
 
 def point_to_point_stamped(point: Point, frame_id='map') -> PointStamped:
@@ -36,7 +36,9 @@ class PrecisionLanding():
         self.camera_model = PinholeCameraModel()
         self.landing_target = self.__init_landing_target()
         self.camera_info = rospy.wait_for_message('camera/camera_info', CameraInfo)
+        self.timer_check_landing_status = None
 
+        self.__init_precision_landing_params()
         self.wait_for_transform()
 
         self.sub_target_object_point = rospy.Subscriber("precision_landing/landing_target/bbox", BoundingBox2D, self.__callback_landing_target_bbox)
@@ -44,12 +46,20 @@ class PrecisionLanding():
         self.pub_estimated_target_object_point = rospy.Publisher("precision_landing/landing_target/estimated/pose", PointStamped, queue_size=1)
         self.service_start = rospy.Service("precision_landing/start", Trigger, self.__callback_service_start)
 
+        rospy.wait_for_service("precision_landing/end")
+        self.client_end = rospy.ServiceProxy("precision_landing/end", Empty)
 
     def wait_for_transform(self):
         while not rospy.is_shutdown():
             if self.tf_buffer.can_transform(self.camera_link, "map", rospy.Time(0), rospy.Duration(1.0)):
                 break
-    
+
+    def __init_precision_landing_params(self):
+        self.offboard.set_param('PLD_BTOUT', 2.0)
+        self.offboard.set_param('PLD_SRCH_ALT', 3.0)
+        self.offboard.set_param('PLD_FAPPR_ALT', 0.1)
+        self.offboard.set_param('PLD_HACC_RAD', 1.0)
+
     def __init_landing_target(self) -> LandingTarget:
         landing_target = LandingTarget()
         landing_target.header.stamp = rospy.Time.now()
@@ -62,21 +72,33 @@ class PrecisionLanding():
     def __callback_landing_target_bbox(self, bbox: BoundingBox2D):
         self.landing_target.header.stamp = rospy.Time.now()
 
-        distance = self.offboard.local_pos.pose.position.z
-        target_pose_camera_link = self.pixel_to_3d(bbox.center.x, bbox.center.y, distance)
-        target_pose_map_link = self.tf_buffer.transform(target_pose_camera_link, "map")
-
-        self.landing_target.pose = target_pose_map_link.pose
+        self.landing_target.pose = self.bbox_to_target_pose(bbox)
         self.landing_target.size = [bbox.size_x, bbox.size_y]
 
         self.pub_estimated_target_object_point.publish(point_to_point_stamped(self.landing_target.pose.position))
 
+        if self.offboard.is_landed():
+            self.client_end()
+
         self.pub_landing_target.publish(self.landing_target)
 
     def __callback_service_start(self, req):
-        self.offboard.set_precision_landing_mode()
+        response = self.offboard.set_precision_landing_mode()
+        self.timer_check_landing_status = rospy.Timer(rospy.Duration(0.1), self.__callback_check_landing_status)
 
-        return TriggerResponse(True, "Precision landing started!")
+        return TriggerResponse(response.mode_sent, "")
+
+    def __callback_check_landing_status(self, _):
+        if self.offboard.is_landed():
+            self.client_end()
+            self.timer_check_landing_status.shutdown()
+
+    def bbox_to_target_pose(self, bbox: BoundingBox2D) -> Pose:
+        distance = self.offboard.local_pos.pose.position.z
+        target_pose_camera_link = self.pixel_to_3d(bbox.center.x, bbox.center.y, distance)
+        target_pose_map_link = self.tf_buffer.transform(target_pose_camera_link, "map")
+
+        return target_pose_map_link.pose
 
     def pixel_to_3d(self, x, y, distance) -> PoseStamped:
         self.camera_model.fromCameraInfo(self.camera_info)
