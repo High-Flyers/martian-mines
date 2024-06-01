@@ -96,7 +96,7 @@ class Detector:
     def image_callback(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
         start_time = time.time()
-        results = self.yolo_model.predict(frame, verbose=False)
+        results = self.yolo_model.predict(frame, verbose=False, imgsz = 640)
         end_time = time.time()
         inference_time = end_time - start_time
         rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")
