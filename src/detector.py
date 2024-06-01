@@ -52,10 +52,9 @@ class Detector:
 
         self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(camera_info_msg)
-
         self.color_detection = ColorDetection(color_detection_config)
-
-    def get_transform(self, base_frame="map", to_frame="camera_link_custom"):
+        
+    def get_transform(self, base_frame="map", to_frame="camera_link"):
         try:
             transform = self.tf_buffer.lookup_transform(base_frame, to_frame, rospy.Time())
             return transform
@@ -65,7 +64,7 @@ class Detector:
 
     def bbox_to_ground_position(self, bbox: BoundingBox):
         ray_camera_frame = self.camera_model.projectPixelTo3dRay(bbox.to_point())
-        transform = self.get_transform("map", "camera_link_custom")
+        transform = self.get_transform("map", "camera_link")
         if transform:
             vector = Vector3Stamped()
             vector.vector.x = ray_camera_frame[0]
@@ -107,7 +106,7 @@ class Detector:
     def image_callback(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
         start_time = time.time()
-        results = self.yolo_model.predict(frame, verbose=False)
+        results = self.yolo_model.predict(frame, verbose=False, imgsz = 640)
         end_time = time.time()
         inference_time = end_time - start_time
         rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")

@@ -2,7 +2,7 @@ version: '3'
 
 services:
   martian-mines:
-    image: highflyers/martian-mines-jetson:realsense
+    image: highflyers/martian-mines-jetson
     build: 
       dockerfile: Dockerfile-jetson
     runtime: nvidia
