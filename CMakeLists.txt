@@ -24,6 +24,7 @@ catkin_install_python(PROGRAMS
   src/precision_landing.py
   src/bbox_publisher.py
   src/detection.py
+  src/trajectory_generator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
