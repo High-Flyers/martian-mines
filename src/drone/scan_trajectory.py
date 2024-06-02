@@ -39,7 +39,7 @@ class ScanTrajectory:
         self.start_point = start_point
 
     def generate_optimized_trajectory(self):
-        waypoints = [self.start_point]
+        waypoints = [(*self.start_point, self.altitude)]
         minx, miny, maxx, maxy = self.polygon_offseted.bounds
         polygon_width = maxx - minx
         distance_between_photos = self.get_distance_between_photos()
@@ -53,15 +53,16 @@ class ScanTrajectory:
             intersection = self.polygon_offseted.intersection(line)
 
             if not intersection.is_empty:
-                coords = list(intersection.coords)
-                coords = sorted(coords, key=lambda x: abs(x[1] - waypoints[-1][1]))
-                waypoints.extend(coords)
+                coords_2d = list(intersection.coords)
+                coords_2d = sorted(coords_2d, key=lambda x: abs(x[1] - waypoints[-1][1]))
+                coords_3d = [(x, y, self.altitude) for x, y in coords_2d]
+                waypoints.extend(coords_3d)
 
             x += distance_between_photos * sgn
 
         return waypoints
 
-    def visualize(self, waypoints):
+    def plot(self, waypoints):
         fig, ax = plt.subplots()
 
         x, y = self.polygon_offseted.exterior.xy
