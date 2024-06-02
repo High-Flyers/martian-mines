@@ -16,6 +16,7 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     ros-noetic-tf2-geometry-msgs \
     ros-noetic-image-geometry \
     ros-noetic-tf2-tools \
+    ros-noetic-vision-msgs \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install ultralytics dill pyrr
