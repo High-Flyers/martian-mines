@@ -11,8 +11,9 @@ RUN sudo apt install ros-noetic-catkin \
     libeigen3-dev \
     ros-noetic-realsense2-camera \
     ros-noetic-image-geometry \
-    ros-noetic-tf2-geometry-msgs \
-    python3-catkin-tools -y
+    python3-catkin-tools \
+    ros-noetic-vision-msgs \
+    ros-noetic-tf2-geometry-msgs -y
 RUN sudo apt install ros-noetic-mavros ros-noetic-mavros-extras -y
 
 
