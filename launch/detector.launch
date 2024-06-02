@@ -3,8 +3,8 @@
     <!--px4 environment variables-->
     <env name="PX4_SIM_SPEED_FACTOR" value="1" />
     <arg name="real_world" default="false" />
-    <arg name="config_file" default="$(find martian_mines)/config/sim.yaml"/>
-
+    <arg name="config_file" default="$(find martian_mines)/config/sim.yaml" unless="$(arg real_world)"/>
+    <arg name="config_file" default="$(find martian_mines)/config/real.yaml" if="$(arg real_world)"/>
 
     <group if="$(arg real_world)">
         <!-- launch realsense camera node -->
@@ -18,14 +18,12 @@
         <!-- tf -->
         <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
             args="0.18 0 -0.1 0 0 0 base_link camera_link" />
-        <!-- args-->
-        <arg name="config_file" default="$(find martian_mines)/config/real.yaml"/>
-        
     </group>
 
     <group unless="$(arg real_world)">
         <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
             args="0 0 -0.2 -1.571 0 -1.571 cgo3_camera_link camera_link" />
+        
     </group>
 
     <arg name="color_detection_config"
