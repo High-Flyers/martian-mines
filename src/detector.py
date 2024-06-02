@@ -72,7 +72,7 @@ class Detector:
 
     def bbox_to_ground_position(self, bbox: BoundingBox):
         ray_camera_frame = self.camera_model.projectPixelTo3dRay(bbox.to_point())
-        transform = self.get_transform("map", "camera_link")
+        transform = self.get_transform("start_pose", "camera_link")
         if transform:
             vector = Vector3Stamped()
             vector.vector.x = ray_camera_frame[0]

@@ -5,6 +5,8 @@
     <arg name="real_world" default="false" />
     <arg name="config_file" default="$(find martian_mines)/config/sim.yaml" unless="$(arg real_world)"/>
     <arg name="config_file" default="$(find martian_mines)/config/real.yaml" if="$(arg real_world)"/>
+    <arg name="no_start_pose" default="false" />
+
 
     <group if="$(arg real_world)">
         <!-- launch realsense camera node -->
@@ -22,10 +24,14 @@
 
     <group unless="$(arg real_world)">
         <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
-            args="0 0 -0.2 -1.571 0 -1.571 cgo3_camera_link camera_link" />
-        
+            args="0 0 0 -1.571 0 -1.571 cgo3_camera_link camera_link" />
+        <!-- for dev-->
+        <node name="tf_uber_map" pkg="tf2_ros" type="static_transform_publisher"
+        args="30.5 -18.5 0 0 0 0 map uber_map" />
     </group>
 
+    <!-- start pose broadcaster - for development it is more comportable to run it separately-->
+    <node type="tf_start_pose.py" name="start_pose_broadcaster" pkg="martian_mines" output="screen" unless="$(arg no_start_pose)"></node>
     <arg name="color_detection_config"
         default="$(find martian_mines)/config/color_detection_sim.json" />
     <node type="detector.py" name="detector" pkg="martian_mines" output="screen">
