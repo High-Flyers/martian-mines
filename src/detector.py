@@ -96,11 +96,19 @@ class Detector:
 
         for bbox in bboxes:
             try:
-                # Filter by ratio
+                # Filter by bbox width height ratio
                 if bbox.label in config["ratio_verification"]["labels"]:
                     ratio = bbox.width / bbox.height
                     if ratio < 0.8 or ratio > 1.25:
                         print(f"Ratio excedeed: {ratio}")
+                        continue
+                
+                # Filter by bbox area to frame ratio
+                if bbox.label in config["area_verification"]["labels"]:
+                    frame_area = frame.shape[0] * frame.shape[1]
+                    bbox_to_image_ratio = bbox.width * bbox.height / frame_area
+                    if bbox_to_image_ratio < config["area_verification"]["min_bbox_to_image_ratio"]:
+                        print(f"Bbox area to frame ratio too small: {bbox_to_image_ratio}")
                         continue
 
                 color = None

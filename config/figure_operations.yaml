@@ -5,6 +5,14 @@ ratio_verification:
     - RedBallPlane
     - VioletBallPlane
     - YellowBallPlane
+area_verification:
+  labels:
+    - BlueBallPlane
+    - RedBallPlane
+    - VioletBallPlane
+    - YellowBallPlane
+    - Barrel
+  min_bbox_to_image_ratio: 0.02
 bbox_shrink:
   labels:
     - BlueBallPlane
