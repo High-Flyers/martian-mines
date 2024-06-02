@@ -55,10 +55,19 @@ class PrecisionLanding():
                 break
 
     def __init_precision_landing_params(self):
-        self.offboard.set_param('PLD_BTOUT', 2.0)
-        self.offboard.set_param('PLD_SRCH_ALT', 3.0)
-        self.offboard.set_param('PLD_FAPPR_ALT', 0.1)
-        self.offboard.set_param('PLD_HACC_RAD', 1.0)
+        landing_target_timeout = rospy.get_param('~landing_target_timeout', 2.0)
+        search_altitude = rospy.get_param('~search_altitude', 2.0)
+        final_approach_altitude = rospy.get_param('~final_approach_altitude', 0.1)
+        horizontal_acceptence_radius = rospy.get_param('~horizontal_acceptence_radius', 0.1)
+        max_search_attempts = rospy.get_param('~max_search_attempts', 3)
+        search_timeout = rospy.get_param('~search_timeout', 10.0)
+
+        self.offboard.set_param('PLD_BTOUT', landing_target_timeout)
+        self.offboard.set_param('PLD_SRCH_ALT', search_altitude)
+        self.offboard.set_param('PLD_FAPPR_ALT', final_approach_altitude)
+        self.offboard.set_param('PLD_HACC_RAD', horizontal_acceptence_radius)
+        self.offboard.set_param('PLD_MAX_SRCH', max_search_attempts)
+        self.offboard.set_param('PLD_SRCH_TOUT', search_timeout)
 
     def __init_landing_target(self) -> LandingTarget:
         landing_target = LandingTarget()
