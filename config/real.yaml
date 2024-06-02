@@ -1,4 +1,4 @@
-real_world: false
+real_world: true
 
 figure_collector:
   group_num_instances: 7
@@ -6,7 +6,7 @@ figure_collector:
   use_local_coords: true
 
 nn_model_path: nn_models/n_20ep.pt
-color_detection_config_file: config/color_detection_sim.json 
+color_detection_config_file: config/color_detection.json 
 
 #additional settings
 upload_data: true

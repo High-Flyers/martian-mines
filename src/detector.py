@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 import rospy
+import rospkg
 import cv2
 import time
 import tf2_ros
 import yaml
 import pyrr
-import numpy as np
+import os
 from typing import List
 from ultralytics import YOLO
 from cv_bridge import CvBridge
@@ -24,11 +25,16 @@ from color_detection import ColorDetection
 class Detector:
     def __init__(self):
         rospy.init_node("video_subscriber", anonymous=True)
-        self.real_world = rospy.get_param("~real_world")
+        rospack = rospkg.RosPack()
+
+    # Get the path to the package
+        package_path = rospack.get_path('martian_mines')
+        print("Package path: ", package_path)
         config_file_path = rospy.get_param("~config_file_path")
-        model_path = str(rospy.get_param("~nn_model_path"))
-        color_detection_config = str(rospy.get_param("~color_detection_config_path"))
+        print("Config file path: ", config_file_path)
         self.config = yaml.safe_load(open(config_file_path))
+        model_path = os.path.join(package_path, self.config["nn_model_path"])
+        color_detection_config = os.path.join(package_path, self.config["color_detection_config_file"])
 
         self.last_telem = {}
         self.tf_buffer = tf2_ros.Buffer()
@@ -53,7 +59,7 @@ class Detector:
         self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(camera_info_msg)
         self.color_detection = ColorDetection(color_detection_config)
-        
+
     def get_transform(self, base_frame="map", to_frame="camera_link"):
         try:
             transform = self.tf_buffer.lookup_transform(base_frame, to_frame, rospy.Time())
@@ -88,12 +94,18 @@ class Detector:
 
         for bbox in bboxes:
             try:
+                # Filter by ratio
+                ratio = bbox.width / bbox.height
+                if ratio < 0.8 or ratio > 1.25:
+                    print(f"Ratio excedeed: {ratio}")
+                    continue
+
                 bbox.shrink_by_offset(0.25)  # get rid of the grass around the plane
                 figure_img = bbox.get_img_piece(frame)
                 fig_type = bbox.label
                 local_position = self.bbox_to_ground_position(bbox)
                 figure = Figure(fig_type, bbox, figure_img=figure_img, local_frame_coords=local_position)
-                dominant_colors = self.color_detection.get_dominant_colors(figure_img, 2, show=True)
+                dominant_colors = self.color_detection.get_dominant_colors(figure_img, 2, show=False)
                 color = self.color_detection.get_matching_color(dominant_colors)
                 print(f"Color: {color}")
                 figure.color = color
@@ -106,7 +118,7 @@ class Detector:
     def image_callback(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
         start_time = time.time()
-        results = self.yolo_model.predict(frame, verbose=False, imgsz = 640)
+        results = self.yolo_model.predict(frame, verbose=False, imgsz=640)
         end_time = time.time()
         inference_time = end_time - start_time
         rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")
@@ -119,7 +131,7 @@ class Detector:
         if confirmed_figures:
             print("Confirmed figures: ", confirmed_figures)
 
-        if not self.real_world:
+        if not self.config["real_world"]:
             cv2.imshow("Adnotated Stream", annotated_frame)
 
             if cv2.waitKey(1) & 0xFF == ord("q"):
