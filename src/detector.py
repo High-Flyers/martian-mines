@@ -35,6 +35,8 @@ class Detector:
         self.config = yaml.safe_load(open(config_file_path))
         model_path = os.path.join(package_path, self.config["nn_model_path"])
         color_detection_config = os.path.join(package_path, self.config["color_detection_config_file"])
+        figure_operations_path = os.path.join(package_path, self.config["figure_operations"])
+        self.figure_operations_config = yaml.safe_load(open(figure_operations_path))
 
         self.last_telem = {}
         self.tf_buffer = tf2_ros.Buffer()
@@ -89,26 +91,36 @@ class Detector:
 
         return (0, 0, 0)
 
-    def create_figures(self, frame, bboxes: List[BoundingBox]):
+    def create_figures(self, frame, bboxes: List[BoundingBox], config):
         figures = []
 
         for bbox in bboxes:
             try:
                 # Filter by ratio
-                ratio = bbox.width / bbox.height
-                if ratio < 0.8 or ratio > 1.25:
-                    print(f"Ratio excedeed: {ratio}")
-                    continue
+                if bbox.label in config["ratio_verification"]["labels"]:
+                    ratio = bbox.width / bbox.height
+                    if ratio < 0.8 or ratio > 1.25:
+                        print(f"Ratio excedeed: {ratio}")
+                        continue
 
-                bbox.shrink_by_offset(0.25)  # get rid of the grass around the plane
-                figure_img = bbox.get_img_piece(frame)
-                fig_type = bbox.label
+                color = None
+                determined_type = None
+
+                if bbox.label in config["bbox_shrink"]["labels"]:
+                    bbox.shrink_by_offset(0.25)  # get rid of the grass around the plane
+
+                if bbox.label in config["ball_color_verification"]["labels"]:
+                    figure_img = bbox.get_img_piece(frame)
+                    dominant_colors = self.color_detection.get_dominant_colors(figure_img, 2, show=False)
+                    color = self.color_detection.get_matching_color(dominant_colors)
+                    determined_type = config["ball_color_verification"]["color_mapping"].get(color, "unknown")
+
+                if bbox.label in config["label_mapping"]["labels"]:
+                    determined_type = config["label_mapping"]["mapping"].get(bbox.label, "unknown")
+
                 local_position = self.bbox_to_ground_position(bbox)
-                figure = Figure(fig_type, bbox, figure_img=figure_img, local_frame_coords=local_position)
-                dominant_colors = self.color_detection.get_dominant_colors(figure_img, 2, show=False)
-                color = self.color_detection.get_matching_color(dominant_colors)
-                print(f"Color: {color}")
-                figure.color = color
+                figure = Figure(bbox.label, bbox, local_frame_coords=local_position, color=color, determined_type=determined_type)
+                # print(f"Figure: {figure}")
                 figures.append(figure)
             except Exception as e:
                 rospy.logwarn(f"Figure creation exception: {e}")
@@ -124,7 +136,7 @@ class Detector:
         rospy.loginfo_throttle(3, f"NN inference total time {round(inference_time * 1000, 1)} ms")
         annotated_frame = results[0].plot()
         bboxes = BoundingBox.from_ultralytics(results[0].boxes, results[0].names)
-        figures = self.create_figures(frame, bboxes)
+        figures = self.create_figures(frame, bboxes, self.figure_operations_config)
 
         self.figure_colletor.update(figures)
         confirmed_figures = self.figure_colletor.confirm_figures()

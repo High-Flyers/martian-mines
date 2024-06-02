@@ -7,6 +7,7 @@ figure_collector:
 
 nn_model_path: nn_models/n_20ep.pt
 color_detection_config_file: config/color_detection_sim.json 
+figure_operations: config/figure_operations.yaml
 
 #additional settings
 upload_data: true

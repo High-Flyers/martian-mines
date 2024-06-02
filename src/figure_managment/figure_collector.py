@@ -38,9 +38,9 @@ class FigureGroup:
         data = Counter(lst)
         return data.most_common(1)[0][0]
 
-    def get_most_common_type(self):
+    def get_most_common_determined_type(self):
         """Gets mosts common type within figures in group"""
-        types_lst = [fig.fig_type for fig in self.figure_list]
+        types_lst = [fig.determined_type for fig in self.figure_list]
         return self.most_common(types_lst)
 
     def get_most_common_color(self):
@@ -59,7 +59,7 @@ def get_proper_figure_in_distance(fig_to_find: Figure, detected_figures: List[Fi
     for fig in detected_figures:
         dist = get_coords_distance(fig.coords, fig_to_find.coords)
         if dist < closest_dist:
-            if fig.color == fig_to_find.color and fig.fig_type == fig_to_find.fig_type:
+            if fig.color == fig_to_find.color and fig.nn_label == fig_to_find.nn_label:
                 closest_dist = dist
                 closest_fig = fig
 
@@ -109,10 +109,10 @@ class FigureCollector:
             if len(fig_group.figure_list) >= self.num_thresh and fig_group.confirmed == False:
                 fig_group.confirmed = True
                 fig_image = fig_group.get_best_image(self.num_thresh)
-                fig_type = fig_group.get_most_common_type()
+                fig_determined_type = fig_group.get_most_common_determined_type()
                 fig_color = fig_group.get_most_common_color()
                 fig_area = fig_group.get_mean_area()
-                confirmed_fig = Figure(fig_type, BoundingBox(), fig_color, local_frame_coords=fig_group.mean_coords, area=fig_area, figure_img=fig_image)
+                confirmed_fig = Figure(bbox=BoundingBox(), color=fig_color, determined_type=fig_determined_type, local_frame_coords=fig_group.mean_coords, area=fig_area, figure_img=fig_image)
                 confirmed_figures.append(confirmed_fig)
 
         return confirmed_figures

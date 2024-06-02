@@ -146,7 +146,7 @@ class ColorDetection:
             if (most_non_white_color > self.min).all() and (most_non_white_color < self.max).all():
                 return color
 
-        return None
+        return "none"
 
     def __get_kmeans(self, img: np.ndarray, k: int) -> np.ndarray:
         # blur = cv.bilateralFilter(img, 10, 120, 120)
