@@ -8,16 +8,14 @@ from detectors.abstract_detector import AbstractDetector
 
 class ArucoDetector(AbstractDetector):
     def __init__(self, aruco_dict=cv2.aruco.DICT_ARUCO_ORIGINAL):
-        self.aruco_dict = aruco_dict
-        aruco_dict = cv2.aruco.getPredefinedDictionary(aruco_dict)
-        aruco_params = cv2.aruco.DetectorParameters()
-        self.aruco_detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
+        self.aruco_dict = cv2.aruco.getPredefinedDictionary(aruco_dict)
+        self.aruco_params = cv2.aruco.DetectorParameters_create()
         self.corners = []
         self.ids = []
 
     def detect(self, frame: np.ndarray) -> Tuple[List[BoundingBox2D], List[str]]:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        self.corners, self.ids, _ = self.aruco_detector.detectMarkers(gray)
+        self.corners, self.ids, _ = cv2.aruco.detectMarkers(gray, self.aruco_dict, parameters=self.aruco_params)
 
         if self.ids is None:
             self.corners = np.array([])

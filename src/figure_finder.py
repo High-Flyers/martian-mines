@@ -10,7 +10,7 @@ from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, NavSatFix, CameraInfo
 from std_msgs.msg import Float64
-from geometry_msgs.msg import Vector3Stamped
+from geometry_msgs.msg import Vector3Stamped, PointStamped
 from tf2_geometry_msgs import do_transform_vector3
 from image_geometry import PinholeCameraModel
 from figure.figure import Figure
@@ -43,6 +43,7 @@ class FigureFinder:
 
         self.confirmed_figures_pub = rospy.Publisher(
             "detection/confirmed_figures", FigureMsgList, latch=True, queue_size=10)
+        self.debug_figure_pos_pub = rospy.Publisher('detection/debug_figure_pos', PointStamped, queue_size=10)
 
         image_sub = message_filters.Subscriber("camera/image_raw", Image)
         bboxes_sub = message_filters.Subscriber('detection/bboxes', BoundingBoxLabeledList)
@@ -147,9 +148,19 @@ class FigureFinder:
         figure_msg_list.figures = confirmed_msg_list
         self.confirmed_figures_pub.publish(figure_msg_list)
 
+    def publish_debug_figure_pos(self, figure: Figure):
+        point = PointStamped()
+        point.header.frame_id = 'start_pose'
+        point.point.x = figure.local_frame_coords[0]
+        point.point.y = figure.local_frame_coords[1]
+        point.point.z = figure.local_frame_coords[2]
+        self.debug_figure_pos_pub.publish(point)
+        
     def detection_callback(self, image, bboxes_msg: BoundingBoxLabeledList):
         frame = self.bridge.imgmsg_to_cv2(image, "bgr8")
         figures = self.create_figures(frame, bboxes_msg.boxes, self.figure_operations_config)
+        if figures:
+            self.publish_debug_figure_pos(figures[0])
 
         self.figure_colletor.update(figures)
         confirmed_figures = self.figure_colletor.confirm_figures()
