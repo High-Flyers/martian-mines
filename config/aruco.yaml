@@ -1,0 +1,4 @@
+real_world: false
+detection:
+  nn_model_path: nn_models/s_10ep.pt
+  detector: aruco
