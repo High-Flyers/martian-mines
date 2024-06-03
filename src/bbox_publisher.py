@@ -11,7 +11,8 @@ class BBoxPublisher:
 
         rospy.wait_for_service("precision_landing/start")
         self.client_precision_landing_start = rospy.ServiceProxy("precision_landing/start", Trigger)
-        self.service_precision_landing_end = rospy.Service("precision_landing/end", Empty, self.__callback_end)
+        self.sub_precision_landing_finished = rospy.Service("precision_landing/finished", Empty,
+                                                            self.__callback_precision_landing_finished)
 
         self.sub_bboxes = rospy.Subscriber("detection/bboxes", BoundingBoxLabeledList, self.__callback_bboxes)
         self.pub_landing_target = rospy.Publisher("precision_landing/landing_target/bbox", BoundingBox2D, queue_size=1)
@@ -25,11 +26,9 @@ class BBoxPublisher:
                 rospy.loginfo(f"Precision Landing response: {response}")
                 self.precision_landing_started = True
 
-    def __callback_end(self, _):
+    def __callback_precision_landing_finished(self, _):
         self.precision_landing_started = False
-        rospy.loginfo("Precision Landing ended!")
-
-        return {}
+        rospy.loginfo("Precision Landing finished!")
 
 
 if __name__ == '__main__':

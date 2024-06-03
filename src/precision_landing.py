@@ -10,7 +10,8 @@ from image_geometry import PinholeCameraModel
 from tf2_geometry_msgs import PoseStamped
 from geometry_msgs.msg import PointStamped, Point, Pose
 from vision_msgs.msg import BoundingBox2D
-from std_srvs.srv import Trigger, TriggerResponse, Empty
+from std_msgs.msg import Empty
+from std_srvs.srv import Trigger, TriggerResponse
 
 
 def point_to_point_stamped(point: Point, frame_id='map') -> PointStamped:
@@ -44,10 +45,8 @@ class PrecisionLanding():
         self.sub_target_object_point = rospy.Subscriber("precision_landing/landing_target/bbox", BoundingBox2D, self.__callback_landing_target_bbox)
         self.pub_landing_target = rospy.Publisher("mavros/landing_target/raw", LandingTarget, queue_size=10)
         self.pub_estimated_target_object_point = rospy.Publisher("precision_landing/landing_target/estimated/pose", PointStamped, queue_size=1)
+        self.pub_landing_finished = rospy.Publisher("precision_landing/finished", Empty, queue_size=1)
         self.service_start = rospy.Service("precision_landing/start", Trigger, self.__callback_service_start)
-
-        rospy.wait_for_service("precision_landing/end")
-        self.client_end = rospy.ServiceProxy("precision_landing/end", Empty)
 
     def wait_for_transform(self):
         while not rospy.is_shutdown():
@@ -86,9 +85,6 @@ class PrecisionLanding():
 
         self.pub_estimated_target_object_point.publish(point_to_point_stamped(self.landing_target.pose.position))
 
-        if self.offboard.is_landed():
-            self.client_end()
-
         self.pub_landing_target.publish(self.landing_target)
 
     def __callback_service_start(self, req):
@@ -99,7 +95,7 @@ class PrecisionLanding():
 
     def __callback_check_landing_status(self, _):
         if self.offboard.is_landed():
-            self.client_end()
+            self.pub_landing_finished.publish()
             self.timer_check_landing_status.shutdown()
 
     def bbox_to_target_pose(self, bbox: BoundingBox2D) -> Pose:
