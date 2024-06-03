@@ -12,7 +12,7 @@ class PurePursuit:
         self.lookahead_distance = lookahead_distance
         self.trajectory: Trajectory = None
         self.target_point: np.ndarray = None
-    
+
     def set_trajectory(self, trajectory: Trajectory) -> None:
         self.trajectory = trajectory
         self.target_point = trajectory[0].point
@@ -24,7 +24,7 @@ class PurePursuit:
         target_point = self.target_point
         index = self.trajectory.index
 
-        if self.is_last():
+        if self.is_last(current_pose):
             self.trajectory.update_index(len(self.trajectory) - 1)
             self.target_point = self.trajectory[-1].point
             return
@@ -56,20 +56,20 @@ class PurePursuit:
         distance = np.linalg.norm(target_vector)
         velocity_factor = -2 ** (-(distance / self.lookahead_distance) + 1) + 2
 
-        if self.is_last():
+        if self.is_last(current_pose):
             return target_vector * velocity_factor / distance
         else:
             return target_vector * velocity * velocity_factor / distance
 
-    def is_last(self) -> bool:
-        if self.trajectory.is_last():
-            return True
-        else:
-            last_waypoint = self.trajectory[-1]
-            closest_point = self.trajectory.segment.get_closest_point(last_waypoint.point)
-            closest_waypoint = Waypoint(closest_point, self.trajectory.segment)
-            trajectory_distance = self.trajectory.get_distance(closest_waypoint, last_waypoint)
-            return trajectory_distance < self.lookahead_distance
+    def is_last(self, current_pose: np.ndarray) -> bool:
+        last_waypoint = self.trajectory[-1]
+        closest_point = self.trajectory.segment.get_closest_point(last_waypoint.point)
+        closest_waypoint = Waypoint(closest_point, self.trajectory.segment)
+        trajectory_distance = self.trajectory.get_distance(closest_waypoint, last_waypoint)
+        euclidean_distance = np.linalg.norm(last_waypoint.point - current_pose)
+
+        return bool(trajectory_distance < self.lookahead_distance) \
+            and bool(euclidean_distance < self.lookahead_distance)
 
     def _get_closest_point_to_target(self, points: np.ndarray, target: np.ndarray) -> np.ndarray:
         min_idx = np.argmin(np.sum((points - target) ** 2, axis=1))
