@@ -7,7 +7,6 @@ import pyrr
 import os
 import message_filters
 from typing import List
-from ultralytics import YOLO
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, NavSatFix, CameraInfo
 from std_msgs.msg import Float64
@@ -22,45 +21,38 @@ from martian_mines.msg import BoundingBoxLabeledList, BoundingBoxLabeled
 
 class FigureFinder:
     def __init__(self):
-        rospy.init_node("video_subscriber", anonymous=True)
-        rospack = rospkg.RosPack()
+        rospy.init_node("figure_finder", anonymous=True)
 
+        rospack = rospkg.RosPack()
         package_path = rospack.get_path('martian_mines')
-        print("Package path: ", package_path)
-        config_file_path = rospy.get_param("~config_file_path")
-        print("Config file path: ", config_file_path)
-        self.config = yaml.safe_load(open(config_file_path))
-        model_path = os.path.join(package_path, self.config["nn_model_path"])
-        color_detection_config = os.path.join(package_path, self.config["color_detection_config_file"])
-        figure_operations_path = os.path.join(package_path, self.config["figure_operations"])
+        color_detection_config = os.path.join(package_path, rospy.get_param("~color_detection_config_file"))
+        self.color_detection = ColorDetection(color_detection_config)
+        figure_operations_path = os.path.join(package_path, rospy.get_param("~figure_operations_config_file"))
         self.figure_operations_config = yaml.safe_load(open(figure_operations_path))
+        self.figure_colletor = FigureCollector(rospy.get_param("~figure_collector"))
 
         self.last_telem = {}
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.bridge = CvBridge()
-        self.yolo_model = YOLO(model_path, verbose=True)
-        self.figure_colletor = FigureCollector(self.config["figure_collector"])
 
-        self.camera_model = PinholeCameraModel()
-        camera_info_msg = rospy.wait_for_message('/uav0/camera/camera_info', CameraInfo)
+        camera_info_msg = rospy.wait_for_message('camera/camera_info', CameraInfo)
         rospy.loginfo("Camera info received")
+        self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(camera_info_msg)
-        self.color_detection = ColorDetection(color_detection_config)
 
-        image_sub = message_filters.Subscriber("/uav0/camera/image_raw", Image)
-        bboxes_sub = message_filters.Subscriber('/uav0/detection/bboxes', BoundingBoxLabeledList)
-
+        image_sub = message_filters.Subscriber("camera/image_raw", Image)
+        bboxes_sub = message_filters.Subscriber('detection/bboxes', BoundingBoxLabeledList)
         ts_image_bboxes = message_filters.TimeSynchronizer([image_sub, bboxes_sub], 10)
         ts_image_bboxes.registerCallback(self.detection_callback)
 
         self.global_pos_sub = rospy.Subscriber(
-            "/uav0/mavros/global_position/global", NavSatFix, self.global_pos_callback
+            "mavros/global_position/global", NavSatFix, self.global_pos_callback
         )
         self.rel_alt_sub = rospy.Subscriber(
-            "/uav0/mavros/global_position/rel_alt", Float64, self.rel_alt_callback
+            "mavros/global_position/rel_alt", Float64, self.rel_alt_callback
         )
-        self.compass_subscriber = rospy.Subscriber('/uav0/mavros/global_position/compass_hdg', Float64, self.compass_callback)
+        self.compass_subscriber = rospy.Subscriber('mavros/global_position/compass_hdg', Float64, self.compass_callback)
 
     def get_transform(self, base_frame="map", to_frame="camera_link"):
         try:

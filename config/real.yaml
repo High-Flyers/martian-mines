@@ -1,17 +1,16 @@
 real_world: true
 
-figure_collector:
-  group_num_instances: 7
-  group_dist_thresh: 1.5
-  use_local_coords: true
+figure_finder:
+  figure_collector:
+    group_num_instances: 7
+    group_dist_thresh: 1.5
+    use_local_coords: true
+  figure_operations_config_file: config/figure_operations.yaml  
+  color_detection_config_file: config/color_detection.json 
 
 detection:
   nn_model_path: nn_models/s_10ep.pt
   detector: yolo
-
-nn_model_path: nn_models/n_20ep.pt
-color_detection_config_file: config/color_detection.json 
-figure_operations: config/figure_operations.yaml
 
 #additional settings
 upload_data: true
