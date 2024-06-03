@@ -12,7 +12,7 @@ class YoloDetector(AbstractDetector):
         self.last_results = None
 
     def detect(self, frame: np.ndarray) -> List[BoundingBoxLabeled]:
-        self.last_results = self.yolo_model.predict(frame, verbose=False, imgsz=640)
+        self.last_results = self.yolo_model.predict(frame, verbose=False, imgsz=640, conf=0.6)
         bboxes = self.__from_ultralytics(self.last_results[0].boxes, self.last_results[0].names)
         return bboxes
 

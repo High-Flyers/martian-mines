@@ -19,7 +19,7 @@
         <rosparam param="uav0/mavros/local_position/tf/send">true</rosparam>
         <!-- tf -->
         <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
-            args="0.18 0 -0.1 0 0 0 base_link camera_link" />
+            args="0.18 0 -0.1 1.571 3.14 0 base_link camera_link" />
     </group>
 
     <group unless="$(arg real_world)">
