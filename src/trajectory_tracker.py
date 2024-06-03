@@ -1,40 +1,54 @@
 import rospy
+import numpy as np
 
 from nav_msgs.msg import Path
 from std_srvs.srv import Trigger
 from drone.offboard import Offboard
 from geometry_msgs.msg import Point
+from trajectory.trajectory import Trajectory
+from trajectory.pure_pursuit import PurePursuit
+
+
+def point_to_np(point: Point):
+    return np.array([point.x, point.y, point.z])
+
+
+def path_to_trajectory(path: Path) -> Trajectory:
+    trajectory = Trajectory()
+    points = np.array([point_to_np(pose_stamped.pose.position) for pose_stamped in path.poses])
+    trajectory.from_points(points)
+
+    return trajectory
 
 
 class TrajectoryTracker:
     def __init__(self):
-        self.path = Path()
-        self.waypoint_idx = 0
+        self.radius = float(rospy.get_param('~radius', 1))
+        self.velocity = float(rospy.get_param('~velocity', 1))
+
         self.offboard = Offboard()
+        self.trajectory = Trajectory()
+        self.pure_pursiut = PurePursuit(lookahead_distance=self.radius)
 
         self.sub_trajectory = rospy.Subscriber('trajectory_generator/path', Path, self.callback_trajectory)
 
-        rospy.wait_for_service('trajectory_generator/generate', timeout=10)
+        rospy.wait_for_service('trajectory_generator/generate', timeout=5)
         self.client_trajectory_generate = rospy.ServiceProxy('trajectory_generator/generate', Trigger)
         self.client_trajectory_generate()
 
     def callback_trajectory(self, path: Path):
-        self.path = path
-        self.waypoint_idx = 0
-        self.timer = rospy.Timer(rospy.Duration(0.01), self.callback_timer)
-        rospy.sleep(1)
+        self.trajectory = path_to_trajectory(path)
+        self.timer = rospy.Timer(rospy.Duration(0.02), self.callback_timer)
+        rospy.sleep(0.2)
         self.offboard.set_offboard_mode()
 
     def callback_timer(self, _):
-        if self.waypoint_idx < len(self.path.poses):
-            position: Point = self.path.poses[self.waypoint_idx].pose.position
+        current_pose = point_to_np(self.offboard.local_pos.pose.position)
+        self.pure_pursiut.set_trajectory(self.trajectory)
+        self.pure_pursiut.step(current_pose)
 
-            self.offboard.fly_point(position.x, position.y, position.z)
-
-            if self.offboard.is_point_reached(position.x, position.y, position.z, 0.2):
-                self.waypoint_idx += 1
-        else:
-            self.timer.shutdown()
+        velocities = self.pure_pursiut.get_velocities(current_pose, self.velocity)
+        self.offboard.fly_velocity(*velocities)
 
 
 if __name__ == "__main__":

@@ -1,14 +1,15 @@
 import rospy
 import numpy as np
 
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
 from mavros_msgs.srv import CommandBool, SetMode, SetModeResponse, ParamSet, ParamSetRequest, ParamSetResponse
 from mavros_msgs.msg import ExtendedState
 
 
 class Offboard():
     def __init__(self) -> None:
-        self.pub_setpoint_local = rospy.Publisher("mavros/setpoint_position/local", PoseStamped, queue_size=10)
+        self.pub_setpoint_local = rospy.Publisher("mavros/setpoint_position/local", PoseStamped, queue_size=1)
+        self.pub_setpoint_velocity = rospy.Publisher('mavros/setpoint_velocity/cmd_vel', TwistStamped, queue_size=1)
         self.sub_local_pos = rospy.Subscriber("mavros/local_position/pose", PoseStamped, self.callback_local_pos)
         self.sub_extended_state = rospy.Subscriber("mavros/extended_state", ExtendedState, self.callback_extended_state)
         self.local_pos = PoseStamped()
@@ -36,10 +37,13 @@ class Offboard():
 
     def disarm(self):
         self.client_arming(False)
+    
+    def set_mission_mode(self):
+        self.client_set_mode(custom_mode="AUTO.MISSION")
 
     def set_offboard_mode(self):
         self.client_set_mode(custom_mode="OFFBOARD")
-
+    
     def set_precision_landing_mode(self) -> SetModeResponse:
         return self.client_set_mode(custom_mode="AUTO.PRECLAND")
 
@@ -65,7 +69,17 @@ class Offboard():
         pose.pose.position.z = z
 
         self.pub_setpoint_local.publish(pose)
+    
+    def fly_velocity(self, vx, vy, vz):
+        twist = TwistStamped()
+        twist.header.stamp = rospy.Time.now()
+        twist.header.frame_id = "map"
+        twist.twist.linear.x = vx
+        twist.twist.linear.y = vy
+        twist.twist.linear.z = vz
 
+        self.pub_setpoint_velocity.publish(twist)
+        
     def callback_local_pos(self, msg: PoseStamped):
         self.local_pos = msg
 
