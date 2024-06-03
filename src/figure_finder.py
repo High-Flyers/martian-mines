@@ -16,7 +16,7 @@ from image_geometry import PinholeCameraModel
 from figure.figure import Figure
 from figure_managment.figure_collector import FigureCollector
 from color_detection import ColorDetection
-from martian_mines.msg import BoundingBoxLabeledList, BoundingBoxLabeled
+from martian_mines.msg import BoundingBoxLabeledList, BoundingBoxLabeled, FigureMsgList
 
 
 class FigureFinder:
@@ -40,6 +40,9 @@ class FigureFinder:
         rospy.loginfo("Camera info received")
         self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(camera_info_msg)
+
+        self.confirmed_figures_pub = rospy.Publisher(
+            "detection/confirmed_figures", FigureMsgList, latch=True, queue_size=10)
 
         image_sub = message_filters.Subscriber("camera/image_raw", Image)
         bboxes_sub = message_filters.Subscriber('detection/bboxes', BoundingBoxLabeledList)
@@ -138,6 +141,12 @@ class FigureFinder:
 
         return figures
 
+    def publish_confirmed_figures(self, confirmed_figures: List[Figure]):
+        confirmed_msg_list = [f.to_msg(status="on_ground") for f in confirmed_figures]
+        figure_msg_list = FigureMsgList()
+        figure_msg_list.figures = confirmed_msg_list
+        self.confirmed_figures_pub.publish(figure_msg_list)
+
     def detection_callback(self, image, bboxes_msg: BoundingBoxLabeledList):
         frame = self.bridge.imgmsg_to_cv2(image, "bgr8")
         figures = self.create_figures(frame, bboxes_msg.boxes, self.figure_operations_config)
@@ -146,6 +155,7 @@ class FigureFinder:
         confirmed_figures = self.figure_colletor.confirm_figures()
         if confirmed_figures:
             print("Confirmed figures: ", confirmed_figures)
+            self.publish_confirmed_figures(confirmed_figures)
 
     def global_pos_callback(self, msg):
         self.last_telem["latitude"] = msg.latitude

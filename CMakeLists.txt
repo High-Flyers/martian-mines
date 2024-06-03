@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_message_files(
   FILES
+  FigureMsg.msg
+  FigureMsgList.msg
   BoundingBoxLabeled.msg
   BoundingBoxLabeledList.msg
 )

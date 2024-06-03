@@ -105,14 +105,14 @@ class FigureCollector:
     def confirm_figures(self):
         """Confirm and get newly confirmed figures"""
         confirmed_figures = []
-        for fig_group in self.fig_groups:
+        for group_id, fig_group in enumerate(self.fig_groups):
             if len(fig_group.figure_list) >= self.num_thresh and fig_group.confirmed == False:
                 fig_group.confirmed = True
                 fig_image = fig_group.get_best_image(self.num_thresh)
                 fig_determined_type = fig_group.get_most_common_determined_type()
                 fig_color = fig_group.get_most_common_color()
                 fig_area = fig_group.get_mean_area()
-                confirmed_fig = Figure(bbox=BoundingBox(), color=fig_color, determined_type=fig_determined_type, local_frame_coords=fig_group.mean_coords, area=fig_area, figure_img=fig_image)
+                confirmed_fig = Figure(bbox=BoundingBox(), color=fig_color, determined_type=fig_determined_type, local_frame_coords=fig_group.mean_coords, area=fig_area, figure_img=fig_image, group_id=group_id)
                 confirmed_figures.append(confirmed_fig)
 
         return confirmed_figures
