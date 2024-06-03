@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import math
 
@@ -11,6 +12,7 @@ class ScanTrajectory:
         self.start_point = (0, 0)
         self.fov_x = fov_x
         self.fov_y = fov_y
+        polygon_coords = [(-y, x) for x, y in polygon_coords]
 
         self.polygon = Polygon(polygon_coords)
         self.polygon_offseted = self.polygon.buffer(0)
@@ -60,24 +62,29 @@ class ScanTrajectory:
 
             x += distance_between_photos * sgn
 
+        waypoints = np.array(waypoints)
+        waypoints[:, 0], waypoints[:, 1] = waypoints[:, 1], -waypoints[:, 0]
+
         return waypoints
 
     def plot(self, waypoints):
         fig, ax = plt.subplots()
 
         x, y = self.polygon_offseted.exterior.xy
+        y, x = np.array(y), -np.array(x)
         ax.plot(x, y, 'b-', label='Polygon')
 
-        waypoints_x = [point[0] for point in waypoints]
-        waypoints_y = [point[1] for point in waypoints]
+        waypoints_y = [point[0] for point in waypoints]
+        waypoints_x = [point[1] for point in waypoints]
         ax.plot(waypoints_x, waypoints_y, 'r-', label='Trajectory')
 
         for waypoint in waypoints:
-            self.plot_camera_footprint(ax, waypoint[0], waypoint[1])
+            self.plot_camera_footprint(ax, waypoint[1], waypoint[0])
 
         ax.legend()
-        ax.set_xlabel('X (meters)')
-        ax.set_ylabel('Y (meters)')
+        ax.set_xlabel('Y (meters)')
+        ax.set_ylabel('X (meters)')
+        ax.invert_xaxis()
         ax.set_title('UAV Trajectory and Camera Coverage')
         plt.gca().set_aspect('equal', adjustable='box')
         plt.show()
