@@ -70,6 +70,11 @@ class PurePursuit:
 
         return bool(trajectory_distance < self.lookahead_distance) \
             and bool(euclidean_distance < self.lookahead_distance)
+    
+    def finished(self, current_pose: np.ndarray, epsilon=0.1) -> bool:
+        euclidean_distance = np.linalg.norm(self.target_point - current_pose)
+
+        return self.is_last(current_pose) and bool(euclidean_distance < epsilon)
 
     def _get_closest_point_to_target(self, points: np.ndarray, target: np.ndarray) -> np.ndarray:
         min_idx = np.argmin(np.sum((points - target) ** 2, axis=1))

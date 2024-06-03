@@ -37,13 +37,13 @@ class Offboard():
 
     def disarm(self):
         self.client_arming(False)
-    
+
     def set_mission_mode(self):
         self.client_set_mode(custom_mode="AUTO.MISSION")
 
     def set_offboard_mode(self):
         self.client_set_mode(custom_mode="OFFBOARD")
-    
+
     def set_precision_landing_mode(self) -> SetModeResponse:
         return self.client_set_mode(custom_mode="AUTO.PRECLAND")
 
@@ -69,17 +69,18 @@ class Offboard():
         pose.pose.position.z = z
 
         self.pub_setpoint_local.publish(pose)
-    
-    def fly_velocity(self, vx, vy, vz):
+
+    def fly_velocity(self, vx, vy, vz, yaw_rate=0.0):
         twist = TwistStamped()
         twist.header.stamp = rospy.Time.now()
         twist.header.frame_id = "map"
         twist.twist.linear.x = vx
         twist.twist.linear.y = vy
         twist.twist.linear.z = vz
+        twist.twist.angular
 
         self.pub_setpoint_velocity.publish(twist)
-        
+
     def callback_local_pos(self, msg: PoseStamped):
         self.local_pos = msg
 

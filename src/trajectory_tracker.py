@@ -1,7 +1,8 @@
 import rospy
 import numpy as np
 
-from nav_msgs.msg import Path
+from nav_msgs.msg import Path 
+from std_msgs.msg import Empty
 from std_srvs.srv import Trigger
 from drone.offboard import Offboard
 from geometry_msgs.msg import Point
@@ -30,7 +31,8 @@ class TrajectoryTracker:
         self.trajectory = Trajectory()
         self.pure_pursiut = PurePursuit(lookahead_distance=self.radius)
 
-        self.sub_trajectory = rospy.Subscriber('trajectory_generator/path', Path, self.callback_trajectory)
+        self.sub_trajectory = rospy.Subscriber('trajectory_tracker/path', Path, self.callback_trajectory)
+        self.pub_finished = rospy.Publisher('trajectory_tracker/finished', Empty, queue_size=1)
 
         rospy.wait_for_service('trajectory_generator/generate', timeout=5)
         self.client_trajectory_generate = rospy.ServiceProxy('trajectory_generator/generate', Trigger)
@@ -49,6 +51,10 @@ class TrajectoryTracker:
 
         velocities = self.pure_pursiut.get_velocities(current_pose, self.velocity)
         self.offboard.fly_velocity(*velocities)
+
+        if self.pure_pursiut.is_last(current_pose):
+            self.pub_finished.publish()
+            self.timer.shutdown()
 
 
 if __name__ == "__main__":
