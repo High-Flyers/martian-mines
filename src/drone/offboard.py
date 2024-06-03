@@ -53,7 +53,7 @@ class Offboard():
 
         return distance < epsilon
 
-    def is_landed(self, epsilon=0.1):
+    def is_landed(self):
         return self.extended_state.landed_state == ExtendedState.LANDED_STATE_ON_GROUND
 
     def fly_point(self, x, y, z):
