@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+    <group ns="uav0">
+        <node type="trajectory_generator.py" name="trajectory_generator" pkg="martian_mines" output="screen">
+            <param name="plot" value="true"/>
+        </node>
+        <node type="trajectory_tracker.py" name="trajectory_tracker" pkg="martian_mines" output="screen"/>
+    </group>
+</launch>
