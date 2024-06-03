@@ -126,6 +126,7 @@ class ColorDetection:
         clustered_img = dominant_colors.reshape(img.shape)
         if show:
             cv.imshow("clustered_img", clustered_img)
+            cv.waitKey(1)
         return centers
     
     def get_matching_color(self, dominant_colors: np.ndarray) -> str:

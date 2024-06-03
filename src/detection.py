@@ -25,14 +25,17 @@ class Detection:
             self.detector = YoloDetector(model_path)
         else:
             rospy.logerr(f"Unknown detector: {detector}")
+        rospy.loginfo(f"Used detector: {detector}")
             
         self.sub_image = rospy.Subscriber("camera/image_raw", Image, self.image_callback)
 
     def image_callback(self, data: Image):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            stamp = data.header.stamp
             bboxes = self.detector.detect(cv_image)
             bboxes_list_msg = self.__to_bboxes_msg_array(bboxes)
+            bboxes_list_msg.header.stamp = stamp
             self.pub_bboxes.publish(bboxes_list_msg)
             cv_image = self.detector.draw_markers(cv_image)
             self.pub_visualization.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))

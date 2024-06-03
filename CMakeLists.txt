@@ -22,7 +22,7 @@ include_directories(
 )
 
 catkin_install_python(PROGRAMS
-  src/detector.py
+  src/figure_finder.py
   src/precision_landing.py
   src/bbox_publisher.py
   src/detection.py

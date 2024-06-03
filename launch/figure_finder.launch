@@ -31,12 +31,14 @@
     </group>
 
     <!-- start pose broadcaster - for development it is more comportable to run it separately-->
+    <rosparam command="load" file="$(arg config_file)"/>
+
     <node type="tf_start_pose.py" name="start_pose_broadcaster" pkg="martian_mines" output="screen" unless="$(arg no_start_pose)"></node>
-    <arg name="color_detection_config"
-        default="$(find martian_mines)/config/color_detection_sim.json" />
-    <node type="detector.py" name="detector" pkg="martian_mines" output="screen">
+    <node ns="uav0" type="detection.py" name="detection" pkg="martian_mines" output="screen">
+        <remap if="$(arg real_world)" from="/uav0/camera/image_raw" to="/uav0/color/image_raw"/>
+    </node>
+    <node type="figure_finder.py" name="figure_finder" pkg="martian_mines" output="screen">
         <param name="config_file_path" value="$(arg config_file)" />
-        <remap if="$(arg real_world)" from="/uav0/camera/image_raw" to="/uav0/color/image_raw" />
         <remap if="$(arg real_world)" from="/uav0/camera/camera_info" to="/uav0/color/camera_info" />
     </node>
 
