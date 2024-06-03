@@ -34,10 +34,6 @@ class TrajectoryTracker:
         self.sub_trajectory = rospy.Subscriber('trajectory_tracker/path', Path, self.callback_trajectory)
         self.pub_finished = rospy.Publisher('trajectory_tracker/finished', Empty, queue_size=1)
 
-        rospy.wait_for_service('trajectory_generator/generate', timeout=5)
-        self.client_trajectory_generate = rospy.ServiceProxy('trajectory_generator/generate', Trigger)
-        self.client_trajectory_generate()
-
     def callback_trajectory(self, path: Path):
         self.trajectory = path_to_trajectory(path)
         self.timer = rospy.Timer(rospy.Duration(0.02), self.callback_timer)

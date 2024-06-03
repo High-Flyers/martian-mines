@@ -8,5 +8,6 @@
             <remap from="trajectory_tracker/path" to="trajectory_generator/path"/>
         </node>
         <node type="tf_start_pose.py" name="tf_start_pose" pkg="martian_mines" output="screen"/>
+        <node pkg="rosservice" type="rosservice" name="generate_trajectory" args="call --wait trajectory_generator/generate" />
     </group>
 </launch>
