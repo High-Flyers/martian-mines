@@ -53,7 +53,7 @@ class FigureGroup:
         return np.mean(area_list)
 
 
-def get_proper_figure_in_distance(fig_to_find: Figure, detected_figures: List[Figure], min_distance):
+def find_proper_figure_in_distance(fig_to_find: Figure, detected_figures: List[Figure], min_distance):
     closest_fig = None
     closest_dist = min_distance
     for fig in detected_figures:

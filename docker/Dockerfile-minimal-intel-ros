@@ -17,6 +17,7 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     ros-noetic-image-geometry \
     ros-noetic-tf2-tools \
     ros-noetic-vision-msgs \
+    ros-noetic-image-transport-plugins \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install ultralytics dill pyrr shapely matplotlib

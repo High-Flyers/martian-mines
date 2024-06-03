@@ -10,8 +10,8 @@ class AbstractDetector(ABC):
 
     @abstractmethod
     def detect(self, frame: np.ndarray) -> List[BoundingBoxLabeled]:
-        pass
+        raise NotImplementedError("Detect not implemented yet")
 
     @abstractmethod
     def draw_markers(self, frame: np.ndarray) -> np.ndarray:
-        pass
+        raise NotImplementedError("Draw markers not implemented yet")

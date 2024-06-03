@@ -27,6 +27,7 @@ class Detection:
             self.detector = YoloDetector(model_path)
         else:
             rospy.logerr(f"Unknown detector: {detector}")
+            raise ValueError(f"Unknown detector: {detector}")
         rospy.loginfo(f"Used detector: {detector}")
             
         self.sub_image = rospy.Subscriber("camera/image_raw", Image, self.image_callback)
