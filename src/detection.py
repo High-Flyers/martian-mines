@@ -26,7 +26,6 @@ class Detection:
             model_path = os.path.join(package_path, rospy.get_param('~nn_model_path'))
             self.detector = YoloDetector(model_path)
         else:
-            rospy.logerr(f"Unknown detector: {detector}")
             raise ValueError(f"Unknown detector: {detector}")
         rospy.loginfo(f"Used detector: {detector}")
             
