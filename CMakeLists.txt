@@ -29,6 +29,7 @@ catkin_install_python(PROGRAMS
   src/bbox_publisher.py
   src/detection.py
   src/trajectory_generator.py
+  src/upload_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
