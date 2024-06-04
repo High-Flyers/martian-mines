@@ -44,11 +44,11 @@ class Offboard():
     def set_mission_mode(self):
         self.client_set_mode(custom_mode="AUTO.MISSION")
     
-    def set_hold_mode(self):
-        self.client_set_mode(custom_mode="AUTO.LOITER")
+    def set_hold_mode(self) -> SetModeResponse:
+        return self.client_set_mode(custom_mode="AUTO.LOITER")
 
-    def set_offboard_mode(self):
-        self.client_set_mode(custom_mode="OFFBOARD")
+    def set_offboard_mode(self) -> SetModeResponse:
+        return self.client_set_mode(custom_mode="OFFBOARD")
 
     def set_precision_landing_mode(self) -> SetModeResponse:
         return self.client_set_mode(custom_mode="AUTO.PRECLAND")

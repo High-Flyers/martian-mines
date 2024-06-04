@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="config" default="$(find martian_mines)/config/tfs.rviz" />
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg config)" />
+    <node name="environment_visualiztion" pkg="martian_mines" type="environment_visualization.py" output="screen" />
+</launch>

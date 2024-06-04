@@ -2,7 +2,6 @@
 <launch>
     <arg name="real_world" default="false" />
     <arg name="no_start_pose" default="false" />
-    <arg name="plot_trajectory" default="false" />
 
     <include file="$(find martian_mines)/launch/core.launch">
         <arg name="real_world" value="$(arg real_world)" />
@@ -10,12 +9,12 @@
     </include>
 
     <group ns="uav0">
-        <node type="trajectory_generator.py" name="trajectory_generator" pkg="martian_mines" output="screen">
-            <param name="plot" value="$(arg plot_trajectory)"/>
-        </node>
+        <node type="trajectory_generator.py" name="trajectory_generator" pkg="martian_mines" output="screen" />
         <node type="trajectory_tracker.py" name="trajectory_tracker" pkg="martian_mines" output="screen">
             <remap from="trajectory_tracker/path" to="trajectory_generator/path"/>
         </node>
-        <node pkg="rosservice" type="rosservice" name="generate_trajectory" args="call --wait trajectory_generator/generate" />
+        <node type="mission_controller.py" name="mission_controller" pkg="martian_mines" output="screen" />
+        <node type="detection.py" name="detection" pkg="martian_mines" output="screen" />
+        <node type="figure_finder.py" name="figure_finder" pkg="martian_mines" output="screen" />
     </group>
 </launch>
