@@ -70,19 +70,23 @@ class Trajectory:
         self._index = 0
         self._segment: Segment = None
     
-    def from_points(self, points: np.ndarray) -> None:
+    @classmethod
+    def from_points(cls, points: np.ndarray):
         if len(points) < 2:
             raise ValueError('Trajectory must have at least 2 points')
 
-        self._points = points
-        self._segments = [Segment(start, end) for start, end in zip(points[:-1], points[1:])]
-        self._waypoints = [Waypoint(point, segment) for point, segment in zip(points, self._segments)]
+        trajectory: Trajectory = cls()
+        trajectory._points = points
+        trajectory._segments = [Segment(start, end) for start, end in zip(points[:-1], points[1:])]
+        trajectory._waypoints = [Waypoint(point, segment) for point, segment in zip(points, trajectory._segments)]
 
-        if len(self.points) > 0:
-            self._waypoints.append(Waypoint(points[-1], self._segments[-1]))
+        if len(trajectory.points) > 0:
+            trajectory._waypoints.append(Waypoint(points[-1], trajectory._segments[-1]))
 
-        self._index = 0
-        self._segment = self._segments[0]
+        trajectory._index = 0
+        trajectory._segment = trajectory._segments[0]
+
+        return trajectory
 
     def __len__(self) -> int:
         return len(self._waypoints)

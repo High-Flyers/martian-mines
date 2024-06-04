@@ -1,7 +1,7 @@
 import rospy
 import numpy as np
 
-from nav_msgs.msg import Path 
+from nav_msgs.msg import Path
 from std_msgs.msg import Empty
 from std_srvs.srv import Trigger
 from drone.offboard import Offboard
@@ -15,11 +15,9 @@ def point_to_np(point: Point):
 
 
 def path_to_trajectory(path: Path) -> Trajectory:
-    trajectory = Trajectory()
     points = np.array([point_to_np(pose_stamped.pose.position) for pose_stamped in path.poses])
-    trajectory.from_points(points)
 
-    return trajectory
+    return Trajectory.from_points(points)
 
 
 class TrajectoryTracker:
