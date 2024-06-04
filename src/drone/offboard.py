@@ -4,6 +4,7 @@ import numpy as np
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from mavros_msgs.srv import CommandBool, SetMode, SetModeResponse, ParamSet, ParamSetRequest, ParamSetResponse
 from mavros_msgs.msg import ExtendedState
+from std_msgs.msg import Float64
 
 
 class Offboard():
@@ -12,8 +13,10 @@ class Offboard():
         self.pub_setpoint_velocity = rospy.Publisher('mavros/setpoint_velocity/cmd_vel', TwistStamped, queue_size=1)
         self.sub_local_pos = rospy.Subscriber("mavros/local_position/pose", PoseStamped, self.callback_local_pos)
         self.sub_extended_state = rospy.Subscriber("mavros/extended_state", ExtendedState, self.callback_extended_state)
+        self.sub_rel_alt = rospy.Subscriber('mavros/global_position/rel_alt', Float64, self.callback_rel_alt)
         self.local_pos = PoseStamped()
         self.extended_state = ExtendedState()
+        self.rel_alt: float = 0.0
 
         rospy.wait_for_service("mavros/cmd/arming")
         self.client_arming = rospy.ServiceProxy("mavros/cmd/arming", CommandBool)
@@ -86,6 +89,9 @@ class Offboard():
 
     def callback_extended_state(self, msg: ExtendedState):
         self.extended_state = msg
+    
+    def callback_rel_alt(self, msg: Float64):
+        self.rel_alt = msg.data
 
     def set_param(self, name: str, value) -> ParamSetResponse:
         request = ParamSetRequest()

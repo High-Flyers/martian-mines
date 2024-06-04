@@ -99,7 +99,7 @@ class PrecisionLanding():
             self.timer_check_landing_status.shutdown()
 
     def bbox_to_target_pose(self, bbox: BoundingBox2D) -> Pose:
-        distance = self.offboard.local_pos.pose.position.z
+        distance = self.offboard.rel_alt
         target_pose_camera_link = self.pixel_to_3d(bbox.center.x, bbox.center.y, distance)
         target_pose_map_link = self.tf_buffer.transform(target_pose_camera_link, "map")
 
