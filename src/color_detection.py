@@ -17,8 +17,8 @@ def find_closest_divisor(n, m):
 
 
 class ColorDetection:
-    def __init__(self):
-        self.load()
+    def __init__(self, path: str = None):
+        self.load(path)
 
     def set_min(self, array: np.ndarray):
         self.min = array
@@ -114,6 +114,40 @@ class ColorDetection:
         thresh = cv.inRange(kmeans, color, color)
 
         return thresh
+
+    def get_dominant_colors(self, img: np.ndarray, k: int = 2, show=False):
+        pixels = img.reshape((-1, 3))
+        pixels = np.float32(pixels)
+        criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+        _, labels, centers = cv.kmeans(pixels, k, None, criteria, 10, cv.KMEANS_RANDOM_CENTERS)
+        centers = np.uint8(centers)
+        dominant_colors = centers[labels.flatten()]
+
+        clustered_img = dominant_colors.reshape(img.shape)
+        if show:
+            cv.imshow("clustered_img", clustered_img)
+            cv.waitKey(1)
+        return centers
+    
+    def get_matching_color(self, dominant_colors: np.ndarray) -> str:
+        def rgb_to_lab(bgr_color):
+            lab_color = cv.cvtColor(np.array([[bgr_color]]), cv.COLOR_BGR2LAB)
+            return lab_color[0][0]
+        lab_colors = [rgb_to_lab(c) for c in dominant_colors]
+        white_lab = (255, 128, 128)
+        distances_to_white = [np.linalg.norm(np.array(lab_color) - np.array(white_lab)) for lab_color in lab_colors]
+
+        max_distance_index = np.argmax(distances_to_white)
+        most_non_white_color = lab_colors[max_distance_index]
+        # print(f"Most non white color: {most_non_white_color}")
+
+        # Check ranges
+        for color in self.colors:
+            self.set_color(color)
+            if (most_non_white_color > self.min).all() and (most_non_white_color < self.max).all():
+                return color
+
+        return "none"
 
     def __get_kmeans(self, img: np.ndarray, k: int) -> np.ndarray:
         # blur = cv.bilateralFilter(img, 10, 120, 120)

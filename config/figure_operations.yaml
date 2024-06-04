@@ -1,0 +1,37 @@
+
+ratio_verification:
+  labels:
+    - BlueBallPlane
+    - RedBallPlane
+    - VioletBallPlane
+    - YellowBallPlane
+area_verification:
+  labels:
+    - BlueBallPlane
+    - RedBallPlane
+    - VioletBallPlane
+    - YellowBallPlane
+    - Barrel
+  min_bbox_to_image_ratio: 0.02
+bbox_shrink:
+  labels:
+    - BlueBallPlane
+    - RedBallPlane
+    - VioletBallPlane
+    - YellowBallPlane
+ball_color_verification:
+    labels:
+    - BlueBallPlane
+    - RedBallPlane
+    - VioletBallPlane
+    - YellowBallPlane
+    color_mapping:
+      red: redBall
+      blue: blueBall
+      purple: purpleBall
+      none: yellowBall
+label_mapping:
+    labels:
+    - Barrel
+    mapping:
+      Barrel: barrel

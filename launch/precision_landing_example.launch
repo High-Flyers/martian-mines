@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="config_file" default="$(find martian_mines)/config/aruco.yaml"/>
     <group ns="uav0">
+        <rosparam command="load" file="$(arg config_file)"/>
         <node type="precision_landing.py" name="precision_landing" pkg="martian_mines" output="screen"/>
         <node type="detection.py" name="detection" pkg="martian_mines" output="screen"/>
         <node type="bbox_publisher.py" name="land_on_target" pkg="martian_mines" output="screen"/>

@@ -17,9 +17,12 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     ros-noetic-image-geometry \
     ros-noetic-tf2-tools \
     ros-noetic-vision-msgs \
+    ros-noetic-image-transport-plugins \
+    ros-noetic-rviz \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install ultralytics dill pyrr shapely matplotlib
+RUN pip3 install ultralytics dill pyrr shapely matplotlib opencv-contrib-python==4.2.*
+RUN pip3 install -U numpy
 
 # Create and setup user
 RUN adduser --disabled-password --gecos '' docker && \

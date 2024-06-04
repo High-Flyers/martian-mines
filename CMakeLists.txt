@@ -5,13 +5,17 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   rospy
   sensor_msgs
+  vision_msgs
+  message_generation
 )
 
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES martian-mines
-#  CATKIN_DEPENDS cv_bridge rospy sensor_msgs
-#  DEPENDS system_lib
+
+add_message_files(
+  FILES
+  FigureMsg.msg
+  FigureMsgList.msg
+  BoundingBoxLabeled.msg
+  BoundingBoxLabeledList.msg
 )
 
 include_directories(
@@ -20,7 +24,7 @@ include_directories(
 )
 
 catkin_install_python(PROGRAMS
-  src/detector.py
+  src/figure_finder.py
   src/precision_landing.py
   src/bbox_publisher.py
   src/detection.py
@@ -30,3 +34,17 @@ catkin_install_python(PROGRAMS
 )
 
 catkin_python_setup()
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  vision_msgs
+)
+
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES martian-mines
+  CATKIN_DEPENDS message_runtime
+#  CATKIN_DEPENDS cv_bridge rospy sensor_msgs
+#  DEPENDS system_lib
+)

@@ -27,9 +27,9 @@ Build ros workspace and our package:
 source src/martian-mines/scripts/setup.sh
 
 ```
-Run our detector - it should show a preview of video from simulation, with marked detected objects.
+Run our figure_finder - it should show a preview of video from simulation, with marked detected objects.
 ```
-roslaunch martian-mines detector.launch 
+roslaunch martian-mines figure_finder.launch 
 ```
 
 ### Run container dedicated for Xavier
@@ -45,12 +45,12 @@ cd docker
 sudo docker compose run martian-mines /bin/bash
 ```
 
-#### Build ros workspace and run detector
+#### Build ros workspace and run figure_finder
 ```bash
 catkin build
 source devel/setup.bash
 roslaunch martian-mines realsense.launch # to run only realsense
-roslaunch martian-mines detector.launch real_world:=true # to run detector with realworld config
+roslaunch martian-mines figure_finder.launch real_world:=true # to run figure_finder with realworld config
 ```
 #### Setup scrip can be used build workspace and optionally setup IP adresses to allow ros communication between two computers
 ```bash

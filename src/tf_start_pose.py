@@ -8,7 +8,8 @@ from nav_msgs.msg import Odometry
 
 
 if __name__ == '__main__':
-    rospy.init_node('fixed_start_pose_tf_broadcaster')
+    rospy.init_node('tf_start_pose', anonymous=True)
+    drone_z_offset = rospy.get_param("~drone_z_offset")
     local_position_msg = rospy.wait_for_message('/uav0/mavros/local_position/odom', Odometry)
     start_pose: Pose = local_position_msg.pose.pose
     rospy.loginfo(f"Local position received, pose: \n{start_pose}")
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     t.child_frame_id = "start_pose"
     t.transform.translation.x = start_pose.position.x
     t.transform.translation.y = start_pose.position.y
-    t.transform.translation.z = start_pose.position.z
+    t.transform.translation.z = start_pose.position.z + drone_z_offset
 
     t.transform.rotation.x = start_pose.orientation.x
     t.transform.rotation.y = start_pose.orientation.y
