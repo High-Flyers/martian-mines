@@ -25,7 +25,7 @@ catkin_install_python(PROGRAMS
   src/bbox_publisher.py
   src/detection.py
   src/trajectory_generator.py
-  src/rviz_environment.py
+  src/environment_visualization.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -10,9 +10,9 @@ from std_msgs.msg import Header, ColorRGBA
 from utils.environment import Environemnt
 
 
-class RvizEnvironment:
-    def __init__(self, marker_pub_address: str = "/visualization_marker_array") -> None:
-        self.marker_pub = rospy.Publisher(marker_pub_address, MarkerArray, queue_size=1, latch=True)
+class EnvironmentVisualization:
+    def __init__(self) -> None:
+        self.markers_pub = rospy.Publisher("environment_visualization/markers", MarkerArray, queue_size=1, latch=True)
         self.env = Environemnt(0, 0)
         self.poses = (
             self.env.left_central_ball, self.env.left_lower_ball, self.env.left_upper_ball,
@@ -23,7 +23,7 @@ class RvizEnvironment:
         self.markers = MarkerArray([*self.__get_balls(), *self.__get_squares(), self.__get_barrel()])
 
     def generate_map(self) -> None:
-        self.marker_pub.publish(self.markers)
+        self.markers_pub.publish(self.markers)
 
     def __get_balls(self):
         return [
@@ -68,7 +68,7 @@ class RvizEnvironment:
 if __name__ == "__main__":
     rospy.init_node("rviz_environment_py")
     try:
-        rviz_environment = RvizEnvironment()
+        rviz_environment = EnvironmentVisualization()
         rviz_environment.generate_map()
         rospy.spin()
     except rospy.ROSInterruptException:
