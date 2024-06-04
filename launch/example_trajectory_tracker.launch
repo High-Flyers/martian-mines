@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    <group ns="uav0">
+        <node type="trajectory_generator.py" name="trajectory_generator" pkg="martian_mines" output="screen">
+            <param name="plot" value="true"/>
+        </node>
+        <node type="trajectory_tracker.py" name="trajectory_tracker" pkg="martian_mines" output="screen">
+            <remap from="trajectory_tracker/path" to="trajectory_generator/path"/>
+        </node>
+        <node type="tf_start_pose.py" name="tf_start_pose" pkg="martian_mines" output="screen"/>
+        <node pkg="rosservice" type="rosservice" name="generate_trajectory" args="call --wait trajectory_generator/generate" />
+    </group>
+</launch>
