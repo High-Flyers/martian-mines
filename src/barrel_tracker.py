@@ -12,17 +12,17 @@ from utils.environment import Environemnt
 
 
 class BarrelTracker:
-    def __init__(self):
+    def __init__(self, alt=4):
         rospy.set_param("~detector", "aruco")
-
-        self.service_generate = rospy.Service("barrel_tracker/activate", Trigger, callback=self.activate)
-        self.finished_pub = rospy.Publisher("barrel_tracker/finished", Empty, queue_size=1)
-        self.bboxes_sub = rospy.Subscriber("detection/bboxes", BoundingBoxLabeledList, callback=self.detection_callback)
 
         self.offboard = Offboard()
         self.camera_info = rospy.wait_for_message("camera/camera_info", CameraInfo)
 
-        self.barrel_waypoint = *Environemnt(0, 0).barrel, 1.5
+        self.barrel_waypoint = (*Environemnt(0, 0).barrel, alt)
+
+        self.service_generate = rospy.Service("barrel_tracker/activate", Trigger, handler=self.activate)
+        self.finished_pub = rospy.Publisher("barrel_tracker/finished", Empty, queue_size=1)
+        self.bboxes_sub = rospy.Subscriber("detection/bboxes", BoundingBoxLabeledList, callback=self.detection_callback)
 
     def activate(self, _):
         self.point_timer = rospy.Timer(rospy.Duration(0.02), callback=self.point_timer_callback)
