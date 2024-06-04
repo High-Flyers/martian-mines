@@ -29,7 +29,7 @@ class RvizEnvironment:
         return [
             Marker(
                 type=Marker.SPHERE, action=Marker.ADD, id=self.__get_marker_id(), pose=self.__get_pose(x, y),
-                lifetime=rospy.Duration(0), header=Header(frame_id="map"), color=color, scale=Vector3(0.06, 0.06, 0.06)
+                lifetime=rospy.Duration(0), header=Header(frame_id="start_pose"), color=color, scale=Vector3(0.06, 0.06, 0.06)
             ) for color, (x, y) in zip(self.__get_colors(), self.poses)
         ]
 
@@ -42,7 +42,7 @@ class RvizEnvironment:
         return [
             Marker(
                 type=Marker.CUBE, action=Marker.ADD, id=self.__get_marker_id(), pose=self.__get_pose(x, y),
-                lifetime=rospy.Duration(0), header=Header(frame_id="map"), color=ColorRGBA(1.0, 1.0, 1.0, 1.0),
+                lifetime=rospy.Duration(0), header=Header(frame_id="start_pose"), color=ColorRGBA(1.0, 1.0, 1.0, 1.0),
                 scale=Vector3(1.0, 1.0, 0.01)
             ) for x, y in self.poses
         ]
@@ -50,7 +50,7 @@ class RvizEnvironment:
     def __get_barrel(self):
         return Marker(
             type=Marker.CYLINDER, action=Marker.ADD, id=self.__get_marker_id(), pose=self.__get_pose(*self.env.barrel),
-            lifetime=rospy.Duration(0), header=Header(frame_id="map"), color=ColorRGBA(.0, .0, 1.0, .8), scale=Vector3(.58, .58, 1.2)
+            lifetime=rospy.Duration(0), header=Header(frame_id="start_pose"), color=ColorRGBA(.0, .0, 1.0, .8), scale=Vector3(.58, .58, 1.2)
         )
 
     def __get_marker_id(self) -> int:
