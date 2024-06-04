@@ -9,6 +9,7 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, NavSatFix, CameraInfo
 from std_msgs.msg import Float64
 from geometry_msgs.msg import PointStamped
+from std_srvs.srv import Trigger, TriggerResponse
 from figure.figure import Figure
 from figure_managment.figure_collector import FigureCollector
 from color_detection import ColorDetection
@@ -27,6 +28,7 @@ class FigureFinder:
         figure_operations_path = os.path.join(package_path, rospy.get_param("~figure_operations_config_file"))
         self.figure_operations_config = yaml.safe_load(open(figure_operations_path))
         self.figure_colletor = FigureCollector(rospy.get_param("~figure_collector"))
+        self.processing = False
 
         self.last_telem = {}
         self.bridge = CvBridge()
@@ -36,7 +38,7 @@ class FigureFinder:
         self.bbox_mapper = BBoxMapper(camera_info_msg)
 
         self.confirmed_figures_pub = rospy.Publisher(
-            "detection/confirmed_figures", FigureMsgList, latch=True, queue_size=10)
+            "detection/confirmed_figures", FigureMsgList, queue_size=10)
         self.debug_figure_pos_pub = rospy.Publisher('detection/debug_figure_pos', PointStamped, queue_size=10)
 
         image_sub = message_filters.Subscriber("camera/image_raw", Image)
@@ -51,6 +53,20 @@ class FigureFinder:
             "mavros/global_position/rel_alt", Float64, self.rel_alt_callback
         )
         self.compass_subscriber = rospy.Subscriber('mavros/global_position/compass_hdg', Float64, self.compass_callback)
+        self.service_start = rospy.Service("figure_finder/start", Trigger, self.callback_service_start)
+        self.service_finish = rospy.Service("figure_finder/finish", Trigger, self.callback_service_finish)
+
+    def callback_service_start(self, req: Trigger):
+        self.processing = True
+        return TriggerResponse(success=True, message="Figure finder started")
+
+    def callback_service_finish(self, req: Trigger):
+        self.processing = False
+        confirmed_figures = self.figure_colletor.confirm_figures()
+        rospy.loginfo(f"Confirmed figures: {confirmed_figures}")
+        self.publish_confirmed_figures(confirmed_figures)
+
+        return TriggerResponse(success=True, message="Figure finder stopped")
 
     def create_figures(self, frame, bboxes: List[BoundingBoxLabeled], config):
         def shrink_bbox(bbox_labeled: BoundingBoxLabeled, offset_percent: float = 0.0):
@@ -125,18 +141,16 @@ class FigureFinder:
         return f
 
     def detection_callback(self, image, bboxes_msg: BoundingBoxLabeledList):
-
+        if not self.processing:
+            return
+        rospy.loginfo_throttle(10, "Figure finder processing...")
         frame = self.bridge.imgmsg_to_cv2(image, "bgr8")
         figures = self.create_figures(frame, bboxes_msg.boxes, self.figure_operations_config)
         figures = [self.map_figure_to_ground(f, bboxes_msg.header.stamp) for f in figures]
         if figures:
             self.publish_debug_figure_pos(figures[0])
-        
+
         self.figure_colletor.update(figures)
-        confirmed_figures = self.figure_colletor.confirm_figures()
-        if confirmed_figures:
-            print("Confirmed figures: ", confirmed_figures)
-            self.publish_confirmed_figures(confirmed_figures)
 
     def global_pos_callback(self, msg):
         self.last_telem["latitude"] = msg.latitude
