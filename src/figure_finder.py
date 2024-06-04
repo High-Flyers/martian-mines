@@ -1,21 +1,19 @@
 import rospy
 import rospkg
 import cv2
-import tf2_ros
 import yaml
-import pyrr
 import os
 import message_filters
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, NavSatFix, CameraInfo
 from std_msgs.msg import Float64
-from geometry_msgs.msg import Vector3Stamped, PointStamped
-from tf2_geometry_msgs import do_transform_vector3
-from image_geometry import PinholeCameraModel
+from geometry_msgs.msg import PointStamped
+from std_srvs.srv import Trigger, TriggerResponse
 from figure.figure import Figure
 from figure_managment.figure_collector import FigureCollector
 from color_detection import ColorDetection
+from utils.bbox_mapper import BBoxMapper
 from martian_mines.msg import BoundingBoxLabeledList, BoundingBoxLabeled, FigureMsgList
 
 
@@ -30,19 +28,17 @@ class FigureFinder:
         figure_operations_path = os.path.join(package_path, rospy.get_param("~figure_operations_config_file"))
         self.figure_operations_config = yaml.safe_load(open(figure_operations_path))
         self.figure_colletor = FigureCollector(rospy.get_param("~figure_collector"))
+        self.processing = False
 
         self.last_telem = {}
-        self.tf_buffer = tf2_ros.Buffer()
-        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.bridge = CvBridge()
 
         camera_info_msg = rospy.wait_for_message('camera/camera_info', CameraInfo)
         rospy.loginfo("Camera info received")
-        self.camera_model = PinholeCameraModel()
-        self.camera_model.fromCameraInfo(camera_info_msg)
+        self.bbox_mapper = BBoxMapper(camera_info_msg)
 
         self.confirmed_figures_pub = rospy.Publisher(
-            "detection/confirmed_figures", FigureMsgList, latch=True, queue_size=10)
+            "detection/confirmed_figures", FigureMsgList, queue_size=10)
         self.debug_figure_pos_pub = rospy.Publisher('detection/debug_figure_pos', PointStamped, queue_size=10)
 
         image_sub = message_filters.Subscriber("camera/image_raw", Image)
@@ -57,35 +53,20 @@ class FigureFinder:
             "mavros/global_position/rel_alt", Float64, self.rel_alt_callback
         )
         self.compass_subscriber = rospy.Subscriber('mavros/global_position/compass_hdg', Float64, self.compass_callback)
+        self.service_start = rospy.Service("figure_finder/start", Trigger, self.callback_service_start)
+        self.service_finish = rospy.Service("figure_finder/finish", Trigger, self.callback_service_finish)
 
-    def get_transform(self, base_frame="map", to_frame="camera_link"):
-        try:
-            transform = self.tf_buffer.lookup_transform(base_frame, to_frame, rospy.Time())
-            return transform
-        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
-            rospy.logwarn(f"Failed to get transform: {e}")
-            return None
+    def callback_service_start(self, req: Trigger):
+        self.processing = True
+        return TriggerResponse(success=True, message="Figure finder started")
 
-    def bbox_to_ground_position(self, bbox: BoundingBoxLabeled):
-        ray_camera_frame = self.camera_model.projectPixelTo3dRay((bbox.bbox.center.x, bbox.bbox.center.y))
-        transform = self.get_transform("start_pose", "camera_link")
-        if transform:
-            vector = Vector3Stamped()
-            vector.vector.x = ray_camera_frame[0]
-            vector.vector.y = ray_camera_frame[1]
-            vector.vector.z = ray_camera_frame[2]
-            transformed_ray = do_transform_vector3(vector, transform)
+    def callback_service_finish(self, req: Trigger):
+        self.processing = False
+        confirmed_figures = self.figure_colletor.confirm_figures()
+        rospy.loginfo(f"Confirmed figures: {confirmed_figures}")
+        self.publish_confirmed_figures(confirmed_figures)
 
-            camera_position = (transform.transform.translation.x, transform.transform.translation.y, transform.transform.translation.z)
-            ray_direction = (transformed_ray.vector.x, transformed_ray.vector.y, transformed_ray.vector.z)
-            ray_local_frame = pyrr.ray.create(camera_position, ray_direction)
-            plane = pyrr.plane.create()
-            intersection_point = pyrr.geometric_tests.ray_intersect_plane(ray_local_frame, plane)
-            if intersection_point is not None:
-                return intersection_point
-            rospy.logwarn("The line is parallel to the plane, cannot get intersection.")
-
-        return (0, 0, 0)
+        return TriggerResponse(success=True, message="Figure finder stopped")
 
     def create_figures(self, frame, bboxes: List[BoundingBoxLabeled], config):
         def shrink_bbox(bbox_labeled: BoundingBoxLabeled, offset_percent: float = 0.0):
@@ -133,8 +114,7 @@ class FigureFinder:
                 if bbox_labeled.label in config["label_mapping"]["labels"]:
                     determined_type = config["label_mapping"]["mapping"].get(bbox_labeled.label, "unknown")
 
-                local_position = self.bbox_to_ground_position(bbox_labeled)
-                figure = Figure(bbox_labeled.label, bbox_labeled, local_frame_coords=local_position, color=color, determined_type=determined_type)
+                figure = Figure(bbox_labeled.label, bbox_labeled, color=color, determined_type=determined_type)
                 # print(f"Figure: {figure}")
                 figures.append(figure)
             except Exception as e:
@@ -155,18 +135,22 @@ class FigureFinder:
         point.point.y = figure.local_frame_coords[1]
         point.point.z = figure.local_frame_coords[2]
         self.debug_figure_pos_pub.publish(point)
-        
+
+    def map_figure_to_ground(self, f: Figure, transform_time):
+        f.local_frame_coords = self.bbox_mapper.bbox_to_ground_position(f.bbox, transform_time)
+        return f
+
     def detection_callback(self, image, bboxes_msg: BoundingBoxLabeledList):
+        if not self.processing:
+            return
+        rospy.loginfo_throttle(10, "Figure finder processing...")
         frame = self.bridge.imgmsg_to_cv2(image, "bgr8")
         figures = self.create_figures(frame, bboxes_msg.boxes, self.figure_operations_config)
+        figures = [self.map_figure_to_ground(f, bboxes_msg.header.stamp) for f in figures]
         if figures:
             self.publish_debug_figure_pos(figures[0])
 
         self.figure_colletor.update(figures)
-        confirmed_figures = self.figure_colletor.confirm_figures()
-        if confirmed_figures:
-            print("Confirmed figures: ", confirmed_figures)
-            self.publish_confirmed_figures(confirmed_figures)
 
     def global_pos_callback(self, msg):
         self.last_telem["latitude"] = msg.latitude

@@ -30,6 +30,8 @@ catkin_install_python(PROGRAMS
   src/detection.py
   src/trajectory_generator.py
   src/upload_node.py
+  src/environment_visualization.py
+  src/trajectory_tracker.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -1,13 +1,13 @@
 import numpy as np
 
-from figure.bounding_box import BoundingBox
+from martian_mines.msg import BoundingBoxLabeled
 from figure.rejection_type import RejectionType
 from martian_mines.msg import FigureMsg
 from typing import Tuple
 
 
 class Figure:
-    def __init__(self, nn_label: str = '', bbox: BoundingBox = BoundingBox(), color: str = '',
+    def __init__(self, nn_label: str = '', bbox: BoundingBoxLabeled = BoundingBoxLabeled(), color: str = '',
                  coords: Tuple[float, float] = (0, 0), local_frame_coords: Tuple[float, float, float] = (0, 0, 0), area: float = 0, figure_img: np.ndarray = None,
                  is_verified: bool = True, rejection_type: RejectionType = RejectionType.NONE, determined_type: str = '', group_id: int = None, status: str = ""):
         self.nn_label = nn_label

@@ -36,7 +36,7 @@
         <rosparam command="load" file="$(arg config_file)"/>
         <remap if="$(arg real_world)" from="camera/image_raw" to="color/image_raw"/>
         <remap if="$(arg real_world)" from="camera/camera_info" to="color/camera_info" />
-        <node type="tf_start_pose.py" name="start_pose_broadcaster" pkg="martian_mines" output="screen" unless="$(arg no_start_pose)"></node>
+        <node type="tf_start_pose.py" name="tf_start_pose" pkg="martian_mines" output="screen" unless="$(arg no_start_pose)"></node>
         <node type="detection.py" name="detection" pkg="martian_mines" output="screen">
         </node>
         <node type="figure_finder.py" name="figure_finder" pkg="martian_mines" output="screen">
