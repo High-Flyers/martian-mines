@@ -39,11 +39,17 @@ roslaunch martian-mines figure_finder.launch
 docker run --platform=linux/arm64 -it --net host -v <path_to_repo>:/home/user/ws/src/martian-mines highflyers/martian-mines-jetson:realsense
 ```
 
-#### Run compose on jetson:
-```
+#### Run compose on jetson (onetime container which will be removed after exit):
+```bash
 cd docker
-sudo docker compose run martian-mines /bin/bash
+sudo docker compose run martian-mines /bin/bash  
 ```
+
+#### Run tmux sesion on jetson, with persistent docker compose and mavlink router
+```bash
+sudo ./scripts/tmux_jetson.sh
+```
+
 
 #### Build ros workspace and run figure_finder
 ```bash

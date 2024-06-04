@@ -6,6 +6,7 @@ services:
     build: 
       dockerfile: Dockerfile-jetson
     runtime: nvidia
+    tty: true
     privileged: true
     network_mode: host
     volumes:
