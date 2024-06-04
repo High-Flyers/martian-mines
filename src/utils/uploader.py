@@ -1,6 +1,8 @@
 import queue
 import requests
 
+import rospy
+
 from threading import Thread
 from time import sleep
 
@@ -31,12 +33,12 @@ class Uploader:
             try:
                 data = self._data_queue.get()
                 response = self._send(data)
-                print(response)
+                rospy.loginfo("Response Status Code: " + str(response.status_code))
                 self._data_queue.task_done()
             except Exception as e:
-                print(f"Uploader error: {e=}")
+                rospy.loginfo(f"Uploader error: {e=}")
             sleep(self._upload_interval)
 
     def _send(self, data: dict) -> requests.Response:
-        response = requests.post(self._url, data=data)
+        response = requests.post(self._url, json=data)
         return response
