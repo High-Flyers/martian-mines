@@ -43,6 +43,9 @@ class Offboard():
 
     def set_mission_mode(self):
         self.client_set_mode(custom_mode="AUTO.MISSION")
+    
+    def set_hold_mode(self):
+        self.client_set_mode(custom_mode="AUTO.LOITER")
 
     def set_offboard_mode(self):
         self.client_set_mode(custom_mode="OFFBOARD")

@@ -47,6 +47,7 @@ class TrajectoryTracker:
         self.offboard.fly_velocity(*velocities)
 
         if self.pure_pursiut.is_last(current_pose):
+            self.offboard.set_hold_mode()
             self.pub_finished.publish()
             self.timer.shutdown()
 
