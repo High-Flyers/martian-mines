@@ -1,6 +1,5 @@
-from dataclasses import dataclass
-
 import rospy
+import message_filters
 
 from sensor_msgs.msg import NavSatFix
 from std_msgs.msg import Float64
@@ -10,85 +9,40 @@ from utils.coords_scaler import CoordinateScaler
 from utils.uploader import Uploader
 
 
-@dataclass
-class DroneData:
-    global_pose: NavSatFix = None
-    heading: Float64 = None
-    rel_altitude: Float64 = None
-
-    def is_complete(self) -> bool:
-        return all(param is not None for param in (self.global_pose, self.heading, self.rel_altitude))
-
-    def reset(self) -> None:
-        self.global_pose = None
-        self.heading = None
-        self.rel_altitude = None
-
-
 class UploadNode:
     def __init__(self):
-        self.global_pose_sub = rospy.Subscriber("uav0/mavros/global_position/global", NavSatFix, self.global_pose_callback)
-        self.heading_sub = rospy.Subscriber("uav0/mavros/global_position/compass_hdg", Float64, self.heading_callback)
-        self.alt_sub = rospy.Subscriber("uav0/mavros/global_position/rel_alt", Float64, self.altitude_callback)
-        self.figure_sub = rospy.Subscriber("uav0/detection/confirmed_figures", FigureMsgList, self.figure_callback)
-        self.start_pose = DroneData()
         self.drone_uploader = Uploader("http://91.227.41.24:3001/drones")
         self.figure_uploader = Uploader("http://91.227.41.24:3001/samples")
-        self.drone_data = DroneData()
-        self.rate = rospy.Rate(10)
-        self.ready = False
-        self.figures = None
 
-    def run(self):
-        while True:
-            if self.ready:
-                if self.drone_data.is_complete():
-                    data = self.get_drone_request_data()
-                    self.drone_uploader.add(data)
-                    self.drone_data.reset()
-                if self.figures is not None:
-                    for fig in self.figures:
-                        data = self.get_figure_request_data(fig)
-                        self.figure_uploader.add(data)
-                    self.figures = None
-                self.rate.sleep()
-                continue
+        global_pose_sub = message_filters.Subscriber("mavros/global_position/global", NavSatFix)
+        alt_sub = message_filters.Subscriber("mavros/global_position/rel_alt", Float64)
+        self.drone_data_ts = message_filters.ApproximateTimeSynchronizer([global_pose_sub, alt_sub], queue_size=10, slop=0.1, allow_headerless=True)
+        self.drone_data_ts.registerCallback(self.drone_data_callback)
 
-            if self.start_pose.global_pose is None or self.start_pose.heading is None:
-                rospy.loginfo("Waiting for start_pose")
-                continue
+        self.figure_sub = rospy.Subscriber("detection/confirmed_figures", FigureMsgList, self.figure_callback)
 
-            self.coordinate_scaler = CoordinateScaler(
-                self.start_pose.global_pose.latitude,
-                self.start_pose.global_pose.longitude,
-                self.start_pose.heading.data
-            )
+        start_global_pose = rospy.wait_for_message("mavros/global_position/global", NavSatFix)
+        start_heading = rospy.wait_for_message("mavros/global_position/compass_hdg", Float64)
+        self.coordinate_scaler = CoordinateScaler(
+            start_global_pose.latitude,
+            start_global_pose.longitude,
+            start_heading.data
+        )
 
-            self.ready = True
-
-    def global_pose_callback(self, data):
-        if self.start_pose.global_pose is None:
-            self.start_pose.global_pose = data
-            return
-        self.drone_data.global_pose = data
-
-    def heading_callback(self, data):
-        if self.start_pose.heading is None:
-            self.start_pose.heading = data
-            return
-        self.drone_data.heading = data
-
-    def altitude_callback(self, data):
-        self.drone_data.rel_altitude = data
+    def drone_data_callback(self, global_pose, altitide):
+        data = self.get_drone_request_data(global_pose, altitide)
+        self.drone_uploader.add(data)
 
     def figure_callback(self, data):
-        self.figures = data.figures
+        for fig in data.figures:
+            data = self.get_figure_request_data(fig)
+            self.figure_uploader.add(data)
 
-    def get_drone_request_data(self):
+    def get_drone_request_data(self, global_pose, rel_altitude):
         return {
-            "x": self.drone_data.global_pose.latitude,
-            "y": self.drone_data.global_pose.longitude,
-            "z": self.drone_data.rel_altitude.data
+            "x": global_pose.latitude,
+            "y": global_pose.longitude,
+            "z": rel_altitude.data
         }
 
     def get_figure_request_data(self, figure: FigureMsg):
@@ -113,5 +67,8 @@ class UploadNode:
 
 if __name__ == "__main__":
     rospy.init_node("upload_node_py")
-    upload_node = UploadNode()
-    upload_node.run()
+    try:
+        upload_node = UploadNode()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
