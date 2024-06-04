@@ -29,8 +29,8 @@ class TrajectoryTracker:
         self.trajectory = Trajectory()
         self.pure_pursiut = PurePursuit(lookahead_distance=self.radius)
 
-        self.sub_trajectory = rospy.Subscriber('trajectory_tracker/path', Path, self.callback_trajectory)
         self.pub_finished = rospy.Publisher('trajectory_tracker/finished', Empty, queue_size=1)
+        self.sub_trajectory = rospy.Subscriber('trajectory_tracker/path', Path, self.callback_trajectory)
 
     def callback_trajectory(self, path: Path):
         self.trajectory = path_to_trajectory(path)
