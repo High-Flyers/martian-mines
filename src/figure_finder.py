@@ -136,9 +136,15 @@ class FigureFinder:
         point.point.z = figure.local_frame_coords[2]
         self.debug_figure_pos_pub.publish(point)
 
-    def map_figure_to_ground(self, f: Figure, transform_time):
-        f.local_frame_coords = self.bbox_mapper.bbox_to_ground_position(f.bbox, transform_time)
-        return f
+    def map_figures_to_ground(self, figures: List[Figure], transform_time):
+        mapped_figures = []
+        for f in figures:
+            figure_ground_position = self.bbox_mapper.bbox_to_ground_position(f.bbox, transform_time)
+            if figure_ground_position is not None:
+                f.local_frame_coords = figure_ground_position
+                mapped_figures.append(f)
+
+        return mapped_figures
 
     def detection_callback(self, image, bboxes_msg: BoundingBoxLabeledList):
         if not self.processing:
@@ -146,7 +152,8 @@ class FigureFinder:
         rospy.loginfo_throttle(10, "Figure finder processing...")
         frame = self.bridge.imgmsg_to_cv2(image, "bgr8")
         figures = self.create_figures(frame, bboxes_msg.boxes, self.figure_operations_config)
-        figures = [self.map_figure_to_ground(f, bboxes_msg.header.stamp) for f in figures]
+        figures = self.map_figures_to_ground(figures, bboxes_msg.header.stamp)
+
         if figures:
             self.publish_debug_figure_pos(figures[0])
 
