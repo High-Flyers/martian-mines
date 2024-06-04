@@ -52,4 +52,12 @@ class BarrelTracker:
             self.offboard.set_hold_mode()
             self.point_timer.shutdown()
             self.finished_pub.publish()
-            
+
+
+if __name__ == "__main__":
+    rospy.init_node("barrel_tracker_py")
+    try:
+        barrel_tracker = BarrelTracker()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
