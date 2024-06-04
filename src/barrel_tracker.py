@@ -8,7 +8,7 @@ from sensor_msgs.msg import CameraInfo
 from martian_mines.msg import BoundingBoxLabeledList
 
 from drone.offboard import Offboard
-from utils.environment import Environemnt
+from utils.environment import Environment
 
 
 class BarrelTracker:
@@ -18,7 +18,7 @@ class BarrelTracker:
         self.offboard = Offboard()
         self.camera_info = rospy.wait_for_message("camera/camera_info", CameraInfo)
 
-        self.barrel_waypoint = (*Environemnt(0, 0).barrel, alt)
+        self.barrel_waypoint = (*Environment(0, 0).barrel, alt)
 
         self.service_generate = rospy.Service("barrel_tracker/activate", Trigger, handler=self.activate)
         self.finished_pub = rospy.Publisher("barrel_tracker/finished", Empty, queue_size=1)

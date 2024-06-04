@@ -1,4 +1,4 @@
-class Environemnt:
+class Environment:
     def __init__(self, x, y):
         self.left_lower_ball = (x + 3, y - 3)
         self.middle_lower_ball = (x + 3, y - 7)
