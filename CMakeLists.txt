@@ -29,6 +29,7 @@ catkin_install_python(PROGRAMS
   src/bbox_publisher.py
   src/detection.py
   src/trajectory_generator.py
+  src/report_uploader.py
   src/environment_visualization.py
   src/trajectory_tracker.py
   src/barrel_tracker.py

@@ -66,7 +66,7 @@ class UploadNode:
 
 
 if __name__ == "__main__":
-    rospy.init_node("upload_node_py")
+    rospy.init_node("report_uploader_py")
     try:
         upload_node = UploadNode()
         rospy.spin()
