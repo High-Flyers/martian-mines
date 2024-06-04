@@ -51,4 +51,4 @@ class BBoxMapper:
                 return intersection_point
             rospy.logwarn("The line is parallel to the plane, cannot get intersection.")
 
-        return (0, 0, 0)
+        return None
