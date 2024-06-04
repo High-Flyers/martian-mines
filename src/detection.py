@@ -35,6 +35,7 @@ class Detection:
         msg = CompressedImage()
         msg.header.stamp = rospy.Time.now()
         msg.format = "jpeg"
+        image_np = cv2.resize(image_np, (640, 360))
         msg.data = np.array(cv2.imencode('.jpg', image_np)[1]).tostring()
         self.pub_visualization.publish(msg)
 
