@@ -127,7 +127,7 @@ Visualization Manager:
       Name: PointStamped
       Queue Size: 10
       Radius: 0.019999999552965164
-      Topic: /uav0/detection/debug_figure_pos
+      Topic: /uav0/figure_finder/debug_figure_pos
       Unreliable: false
       Value: true
     - Class: rviz/Image
