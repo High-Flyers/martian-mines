@@ -76,10 +76,10 @@ class Offboard():
 
         self.pub_setpoint_local.publish(pose)
 
-    def fly_velocity(self, vx, vy, vz, yaw_rate=0.0):
+    def fly_velocity(self, vx, vy, vz, yaw_rate=0.0, frame_id="map"):
         twist = TwistStamped()
         twist.header.stamp = rospy.Time.now()
-        twist.header.frame_id = "map"
+        twist.header.frame_id = frame_id
         twist.twist.linear.x = vx
         twist.twist.linear.y = vy
         twist.twist.linear.z = vz

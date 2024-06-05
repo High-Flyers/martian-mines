@@ -51,7 +51,8 @@ class UploadNode:
             "x": x,
             "y": y,
             "color": self.get_figure_color(figure),
-            "sample_status": figure.status
+            "sample_status": figure.status,
+            # "sample_id": figure.id
         }
 
     def get_figure_color(self, figure):

@@ -37,31 +37,26 @@ class BarrelTracker:
             self.offboard.set_hold_mode()
             self.point_timer.shutdown()
             self.bboxes_sub = rospy.Subscriber("detection/bboxes", BoundingBoxLabeledList, callback=self.detection_callback)
+            self.offboard.set_offboard_mode()
+            rospy.sleep(0.2)
 
     def detection_callback(self, data):
         for bbox in data.boxes:
             if bbox.label != "Barrel":
                 continue
             bbox = bbox.bbox
-            self.diff_vector = self.camera_center - np.array([bbox.center.x, bbox.center.y])
-            self.velocity_timer = rospy.Timer(rospy.Duration(0.02), callback=self.velocity_timer_callback)
-            rospy.sleep(0.2)
-            self.offboard.set_offboard_mode()
-
-    def velocity_timer_callback(self, _):
-        velocities = self.get_velocities(self.diff_vector)
-        rospy.loginfo(velocities)
-        self.offboard.fly_velocity(*velocities, vz=0)
-
-        if np.allclose(self.diff_vector, [0, 0]):
-            self.offboard.set_hold_mode()
-            self.point_timer.shutdown()
-            self.finished_pub.publish()
+            self.diff_vector = np.array([bbox.center.x, bbox.center.y]) - self.camera_center
+            rospy.loginfo("diff vector: " + str(self.diff_vector))
+            self.diff_vector = np.array([-self.diff_vector[1], -self.diff_vector[0]])
+            rospy.loginfo("transformed diff vector: " + str(self.diff_vector))
+            velocities = self.get_velocities(self.diff_vector)
+            rospy.loginfo("velocities" + str(velocities))
+            self.offboard.fly_velocity(*velocities, vz=0, frame_id="base_link")
 
     def get_velocities(self, target_vector):
         distance = np.linalg.norm(target_vector)
         velocity_factor = -2 ** (-(distance) + 1) + 2
-        return target_vector * velocity_factor / distance
+        return target_vector * velocity_factor / distance / 10
 
 
 if __name__ == "__main__":
