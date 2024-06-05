@@ -23,15 +23,12 @@ class BarrelTracker:
 
         self.service_generate = rospy.Service("barrel_tracker/activate", Trigger, handler=self.activate)
         self.finished_pub = rospy.Publisher("barrel_tracker/finished", Empty, queue_size=1)
-        self.bboxes_sub = rospy.Subscriber("detection/bboxes", BoundingBoxLabeledList, callback=self.detection_callback)
-
-        rospy.wait_for_service("figure_finder/finish")
 
     def activate(self, _):
         self.point_timer = rospy.Timer(rospy.Duration(0.02), callback=self.point_timer_callback)
         rospy.sleep(0.2)
         self.offboard.set_offboard_mode()
-        return TriggerResponse(success=True)
+        return TriggerResponse(success=True, message="Barrel tracking activated")
 
     def point_timer_callback(self, _):
         self.offboard.fly_point(*self.barrel_waypoint)
@@ -39,7 +36,7 @@ class BarrelTracker:
         if self.offboard.is_point_reached(*self.barrel_waypoint):
             self.offboard.set_hold_mode()
             self.point_timer.shutdown()
-            rospy.wait_for_service("figure_finder/start")
+            self.bboxes_sub = rospy.Subscriber("detection/bboxes", BoundingBoxLabeledList, callback=self.detection_callback)
 
     def detection_callback(self, data):
         for bbox in data.boxes:
@@ -53,13 +50,13 @@ class BarrelTracker:
 
     def velocity_timer_callback(self, _):
         velocities = self.get_velocities(self.diff_vector)
+        rospy.loginfo(velocities)
         self.offboard.fly_velocity(*velocities, vz=0)
 
         if np.allclose(self.diff_vector, [0, 0]):
             self.offboard.set_hold_mode()
             self.point_timer.shutdown()
             self.finished_pub.publish()
-            rospy.wait_for_service("figure_finder/finish")
 
     def get_velocities(self, target_vector):
         distance = np.linalg.norm(target_vector)
