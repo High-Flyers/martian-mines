@@ -2,7 +2,7 @@ import rospy
 import numpy as np
 
 from geometry_msgs.msg import PoseStamped, TwistStamped
-from mavros_msgs.srv import CommandBool, SetMode, SetModeResponse, ParamSet, ParamSetRequest, ParamSetResponse
+from mavros_msgs.srv import (CommandBool, SetMode, SetModeResponse, ParamSet, ParamSetRequest, ParamSetResponse)
 from mavros_msgs.msg import ExtendedState
 from std_msgs.msg import Float64
 
@@ -41,14 +41,20 @@ class Offboard():
     def disarm(self):
         self.client_arming(False)
 
+    def land(self):
+        self.client_set_mode(custom_mode="AUTO.LAND")
+
+    def return_home(self):
+        self.client_set_mode(custom_mode="AUTO.RTL")
+
     def set_mission_mode(self):
         self.client_set_mode(custom_mode="AUTO.MISSION")
-    
-    def set_hold_mode(self):
-        self.client_set_mode(custom_mode="AUTO.LOITER")
 
-    def set_offboard_mode(self):
-        self.client_set_mode(custom_mode="OFFBOARD")
+    def set_hold_mode(self) -> SetModeResponse:
+        return self.client_set_mode(custom_mode="AUTO.LOITER")
+
+    def set_offboard_mode(self) -> SetModeResponse:
+        return self.client_set_mode(custom_mode="OFFBOARD")
 
     def set_precision_landing_mode(self) -> SetModeResponse:
         return self.client_set_mode(custom_mode="AUTO.PRECLAND")
@@ -92,7 +98,7 @@ class Offboard():
 
     def callback_extended_state(self, msg: ExtendedState):
         self.extended_state = msg
-    
+
     def callback_rel_alt(self, msg: Float64):
         self.rel_alt = msg.data
 

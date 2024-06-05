@@ -38,7 +38,7 @@ class FigureFinder:
         self.bbox_mapper = BBoxMapper(camera_info_msg)
 
         self.confirmed_figures_pub = rospy.Publisher(
-            "detection/confirmed_figures", FigureMsgList, queue_size=10)
+            "figure_finder/confirmed_figures", FigureMsgList, queue_size=10)
         self.detected_figures_pub = rospy.Publisher(
             "figure_finder/detected_figures", FigureMsgList, queue_size=10)
 

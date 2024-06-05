@@ -9,7 +9,7 @@ from nav_msgs.msg import Odometry
 
 if __name__ == '__main__':
     rospy.init_node('tf_start_pose', anonymous=True)
-    drone_z_offset = rospy.get_param("~drone_z_offset")
+    drone_z_offset = rospy.get_param("~drone_z_offset", 0.0)
     local_position_msg = rospy.wait_for_message('/uav0/mavros/local_position/odom', Odometry)
     start_pose: Pose = local_position_msg.pose.pose
     rospy.loginfo(f"Local position received, pose: \n{start_pose}")

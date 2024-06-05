@@ -8,6 +8,7 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     python3-catkin-tools \
     mesa-utils \
     python3-pip \
+    python3-tk \
     ros-noetic-mavros \
     ros-noetic-mavros-extras \
     ros-noetic-gazebo-ros \
@@ -21,7 +22,7 @@ RUN apt-get update && apt-get -y --quiet --no-install-recommends install \
     ros-noetic-rviz \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install ultralytics dill pyrr shapely matplotlib opencv-contrib-python==4.2.*
+RUN pip3 install ultralytics dill pyrr shapely transitions matplotlib opencv-contrib-python==4.2.*
 RUN pip3 install -U numpy
 
 # Create and setup user
