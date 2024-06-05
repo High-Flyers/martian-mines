@@ -45,7 +45,7 @@ class BarrelTracker:
             if bbox.label != "Barrel":
                 continue
             bbox = bbox.bbox
-            self.diff_vector = np.array([bbox.center.x, bbox.center.y]) - self.camera_center
+            self.diff_vector = (np.array([bbox.center.x, bbox.center.y]) - self.camera_center) / self.camera_center
             rospy.loginfo("diff vector: " + str(self.diff_vector))
             self.diff_vector = np.array([-self.diff_vector[1], -self.diff_vector[0]])
             rospy.loginfo("transformed diff vector: " + str(self.diff_vector))
@@ -55,8 +55,9 @@ class BarrelTracker:
 
     def get_velocities(self, target_vector):
         distance = np.linalg.norm(target_vector)
-        velocity_factor = -2 ** (-(distance) + 1) + 2
-        return target_vector * velocity_factor / distance / 10
+        velocity_factor = (-2.0 ** (-(6.0*distance) + 1.0) + 2.0) / 2.0
+        max_velocity = 1.0 # m/s
+        return target_vector * velocity_factor * max_velocity
 
 
 if __name__ == "__main__":
