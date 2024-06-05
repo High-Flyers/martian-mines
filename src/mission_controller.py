@@ -70,25 +70,25 @@ class MissionController(Machine):
 
     def is_need_scanning(self):
         return self.target_figures is None
-    
+
     def on_enter_INIT(self):
         self.local_home_pose = self.offboard.local_pos
 
         self.takeoff()
 
     def on_enter_TAKEOFF(self):
-        self.timer_takeoff = rospy.Timer(rospy.Duration(0.02), self.cb_timer_takeoff)
+        def cb_timer_takeoff(_):
+            self.offboard.takeoff(self.takeoff_height)
+
+            if self.offboard.is_takeoff_finished(self.takeoff_height):
+                self.offboard.set_hold_mode()
+                self.takeoff_finished()
+                self.timer_takeoff.shutdown()
+
+        self.timer_takeoff = rospy.Timer(rospy.Duration(0.02), cb_timer_takeoff)
         self.offboard.takeoff(self.takeoff_height)
         rospy.sleep(0.2)
         self.offboard.start()
-
-    def cb_timer_takeoff(self, _):
-        self.offboard.takeoff(self.takeoff_height)
-
-        if self.offboard.is_takeoff_finished(self.takeoff_height):
-            self.offboard.set_hold_mode()
-            self.takeoff_finished()
-            self.timer_takeoff.shutdown()
 
     def on_enter_SCANNING(self):
         self.client_generate_trajectory()
@@ -97,9 +97,9 @@ class MissionController(Machine):
     def on_enter_TARGET_FIGURE(self):
         def cb_timer_fly_to_figure(figure: FigureMsg):
             figure_point = [figure.local_x, figure.local_y, self.target_figure_approach_height]
-            self.offboard.fly_point(*figure_point)
+            self.offboard.fly_point(*figure_point, frame_id='start_pose')
 
-            if self.offboard.is_point_reached(*figure_point):
+            if self.offboard.is_point_reached(*figure_point, frame_id='start_pose'):
                 self.offboard.set_hold_mode()
                 self.land_figure(target_figure)
                 self.cb_timer_fly_to_figure.shutdown()
@@ -125,16 +125,16 @@ class MissionController(Machine):
 
         self.timer_figure_landing = rospy.Timer(rospy.Duration(0.02), lambda _: cb_figure_landing(target_figure))
         self.client_precision_landing_start()
-    
+
     def on_enter_RETURN(self):
-        def cb_timer_return(event):
+        def cb_timer_return(_):
             self.offboard.fly_point(self.local_home_pose.pose.position.x, self.local_home_pose.pose.position.y, self.takeoff_height)
 
             if self.offboard.is_point_reached(self.local_home_pose.pose.position.x, self.local_home_pose.pose.position.y, self.takeoff_height):
                 self.offboard.land()
-                self.event.shutdown()
+                self.timer_return.shutdown()
 
-        rospy.Timer(rospy.Duration(0.02), lambda event: cb_timer_return(event))
+        self.timer_return = rospy.Timer(rospy.Duration(0.02), cb_timer_return)
         rospy.sleep(0.2)
         self.offboard.set_offboard_mode()
 

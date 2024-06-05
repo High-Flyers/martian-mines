@@ -32,11 +32,10 @@ class Uploader:
         while True:
             try:
                 data = self._data_queue.get()
-                response = self._send(data)
-                rospy.loginfo("Response Status Code: " + str(response.status_code))
+                self._send(data)
                 self._data_queue.task_done()
             except Exception as e:
-                rospy.loginfo(f"Uploader error: {e=}")
+                rospy.logerr(f"Uploader error: {e=}")
             sleep(self._upload_interval)
 
     def _send(self, data: dict) -> requests.Response:

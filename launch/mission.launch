@@ -19,6 +19,7 @@
         </node>
         <node type="detection.py" name="detection" pkg="martian_mines" output="screen" />
         <node type="figure_finder.py" name="figure_finder" pkg="martian_mines" output="screen" />
+        <node type="report_uploader.py" name="report_uploader" pkg="martian_mines" output="screen" />
         <node type="mission_controller.py" name="mission_controller" pkg="martian_mines" output="screen" />
     </group>
 

@@ -8,7 +8,6 @@ from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, NavSatFix, CameraInfo
 from std_msgs.msg import Float64
-from geometry_msgs.msg import PointStamped
 from std_srvs.srv import Trigger, TriggerResponse
 from figure.figure import Figure
 from figure_managment.figure_collector import FigureCollector
