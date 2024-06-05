@@ -14,8 +14,10 @@ class DetectionsVisualization:
             "redBall": ColorRGBA(1.0, .0, .0, .8),
             "purpleBall": ColorRGBA(0.52, .0, 0.52, .8),
             "blueBall": ColorRGBA(.0, .0, 1.0, .8),
-            "yellowBall": ColorRGBA(1.0, 1.0, .0, .8)}
+            "yellowBall": ColorRGBA(1.0, 1.0, .0, .8),
+            "barrel": ColorRGBA(0.0, 0.0, .0, .8)}
         self.marker_id = 0
+        self.marker_size = rospy.get_param("~marker_size", 0.1)
 
     def figure_callback(self, data: FigureMsgList):
         marker_array = MarkerArray()
@@ -26,7 +28,7 @@ class DetectionsVisualization:
         return Marker(
             type=Marker.SPHERE, action=Marker.ADD, id=self.__get_marker_id(), pose=self.__get_pose(fig),
             lifetime=rospy.Duration(0), header=Header(stamp=rospy.Time.now(), frame_id="start_pose"), color=self.color_mapping[fig.type],
-            scale=Vector3(0.1, 0.1, 0.1)
+            scale=Vector3(self.marker_size, self.marker_size, self.marker_size)
         )
 
     def __get_marker_id(self) -> int:
@@ -42,7 +44,7 @@ class DetectionsVisualization:
 
 
 if __name__ == "__main__":
-    rospy.init_node("detections_visualization")
+    rospy.init_node("detections_visualization", anonymous=True)
     try:
         detections_visualization = DetectionsVisualization()
         rospy.spin()

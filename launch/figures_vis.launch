@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    <group ns="uav0">
+        <node type="detections_visualization.py" name="detections_visualization" pkg="martian_mines"
+            output="screen" />
+        <node type="detections_visualization.py" name="confirmed_figures_visualization"
+            pkg="martian_mines" output="screen">
+            <param name="marker_size" value="0.5" />
+            <remap from="figure_finder/detected_figures"
+                to="figure_finder/confirmed_figures" />
+        </node>
+    </group>
+</launch>
