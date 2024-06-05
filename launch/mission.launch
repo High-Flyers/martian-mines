@@ -8,6 +8,7 @@
         <arg name="no_start_pose" value="$(arg no_start_pose)" />
     </include>
 
+
     <group ns="uav0">
         <node type="precision_landing.py" name="precision_landing" pkg="martian_mines" output="screen"/>
         <node type="trajectory_generator.py" name="trajectory_generator" pkg="martian_mines" output="screen" />
@@ -18,4 +19,6 @@
         <node type="figure_finder.py" name="figure_finder" pkg="martian_mines" output="screen" />
         <node type="mission_controller.py" name="mission_controller" pkg="martian_mines" output="screen" />
     </group>
+
+    <include file="$(find martian_mines)/launch/figures_vis.launch" />
 </launch>

@@ -8,6 +8,8 @@ Panels:
         - /Status1
         - /TF1/Frames1
         - /TF1/Tree1
+        - /Grid1
+        - /MarkerArray2
       Splitter Ratio: 0.8647058606147766
     Tree Height: 369
   - Class: rviz/Selection
@@ -135,11 +137,11 @@ Visualization Manager:
       Name: Grid
       Normal Cell Count: 0
       Offset:
-        X: 0
-        Y: 0
+        X: 10
+        Y: -10
         Z: 0
       Plane: XY
-      Plane Cell Count: 10
+      Plane Cell Count: 30
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
@@ -196,6 +198,14 @@ Visualization Manager:
         "": true
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /uav0/detections_visualization/markers
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -224,7 +234,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 22.196691513061523
+      Distance: 14.685699462890625
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -232,17 +242,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.13332515954971313
-        Y: -5.412292003631592
-        Z: 1.227929949760437
+        X: 0.01840328425168991
+        Y: -3.9955780506134033
+        Z: 1.0722016096115112
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3852015435695648
+      Pitch: 0.4352017641067505
       Target Frame: start_pose
-      Yaw: 3.0303914546966553
+      Yaw: 2.6303908824920654
     Saved: ~
 Window Geometry:
   Displays:
