@@ -10,6 +10,8 @@
 
 
     <group ns="uav0">
+        <remap if="$(arg real_world)" from="camera/image_raw" to="color/image_raw"/>
+        <remap if="$(arg real_world)" from="camera/camera_info" to="color/camera_info" />
         <node type="precision_landing.py" name="precision_landing" pkg="martian_mines" output="screen"/>
         <node type="trajectory_generator.py" name="trajectory_generator" pkg="martian_mines" output="screen" />
         <node type="trajectory_tracker.py" name="trajectory_tracker" pkg="martian_mines" output="screen">

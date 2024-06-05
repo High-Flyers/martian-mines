@@ -10,6 +10,8 @@
 
     <group ns="uav0">
         <rosparam command="load" file="$(find martian_mines)/config/aruco.yaml"/>
+        <remap if="$(arg real_world)" from="camera/image_raw" to="color/image_raw"/>
+        <remap if="$(arg real_world)" from="camera/camera_info" to="color/camera_info" />
         <node type="precision_landing.py" name="precision_landing" pkg="martian_mines" output="screen"/>
         <node type="detection.py" name="detection" pkg="martian_mines" output="screen"/>
         <node type="bbox_publisher.py" name="land_on_target" pkg="martian_mines" output="screen"/>

@@ -9,6 +9,8 @@
     </include>
 
     <group ns="uav0">
+        <remap if="$(arg real_world)" from="camera/image_raw" to="color/image_raw"/>
+        <remap if="$(arg real_world)" from="camera/camera_info" to="color/camera_info" />
         <node type="detection.py" name="detection" pkg="martian_mines" output="screen" />
         <node type="figure_finder.py" name="figure_finder" pkg="martian_mines" output="screen" />
         <node pkg="rosservice" type="rosservice" name="figure_finder_start" args="call --wait figure_finder/start" />
