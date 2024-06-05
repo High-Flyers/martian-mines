@@ -32,6 +32,7 @@ catkin_install_python(PROGRAMS
   src/report_uploader.py
   src/environment_visualization.py
   src/trajectory_tracker.py
+  src/detections_visualization.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
