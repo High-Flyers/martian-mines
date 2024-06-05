@@ -30,7 +30,7 @@ class PrecisionLanding():
         rospy.init_node('precision_landing_node')
 
         self.camera_objects = ModelStates()
-        self.camera_link = rospy.get_param('~camera_link', 'cgo3_camera_link')
+        self.camera_link = rospy.get_param('~camera_link', 'camera_link')
         self.offboard = Offboard()
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer)
@@ -113,9 +113,9 @@ class PrecisionLanding():
         pose = PoseStamped()
         pose.header.stamp = rospy.Time(0)
         pose.header.frame_id = self.camera_link
-        pose.pose.position.x = position[2]
-        pose.pose.position.y = -position[0]
-        pose.pose.position.z = -position[1]
+        pose.pose.position.x = position[0]
+        pose.pose.position.y = position[1]
+        pose.pose.position.z = position[2]
 
         return pose
 
