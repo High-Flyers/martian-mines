@@ -39,13 +39,13 @@ class MissionController(Machine):
         self.pub_precision_landing_bbox = rospy.Publisher('precision_landing/landing_target/bbox', BoundingBox2D, queue_size=1)
 
         rospy.loginfo('Waiting for services...')
-        rospy.wait_for_service('trajectory_generator/generate', timeout=5)
+        rospy.wait_for_service('trajectory_generator/generate', timeout=15)
         self.client_generate_trajectory = rospy.ServiceProxy('trajectory_generator/generate', Trigger)
-        rospy.wait_for_service('figure_finder/start', timeout=5)
+        rospy.wait_for_service('figure_finder/start', timeout=15)
         self.client_figure_finder_start = rospy.ServiceProxy('figure_finder/start', Trigger)
-        rospy.wait_for_service('figure_finder/finish', timeout=5)
+        rospy.wait_for_service('figure_finder/finish', timeout=15)
         self.client_figure_finder_finish = rospy.ServiceProxy('figure_finder/finish', Trigger)
-        rospy.wait_for_service('precision_landing/start', timeout=5)
+        rospy.wait_for_service('precision_landing/start', timeout=15)
         self.client_precision_landing_start = rospy.ServiceProxy('precision_landing/start', Trigger)
         rospy.loginfo('Services are ready!')
 

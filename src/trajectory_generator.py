@@ -19,7 +19,7 @@ class TrajectoryGenerator():
 
         self.trajectory_link = rospy.get_param('~trajectory_link', 'start_pose')
 
-        camera_info = rospy.wait_for_message('camera/camera_info', CameraInfo, timeout=3)
+        camera_info = rospy.wait_for_message('camera/camera_info', CameraInfo, timeout=15)
 
         self.camera_model = PinholeCameraModel()
         self.camera_model.fromCameraInfo(camera_info)
