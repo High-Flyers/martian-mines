@@ -9,7 +9,7 @@ figure_finder:
   color_detection_config_file: config/color_detection.json 
 
 detection:
-  nn_model_path: nn_models/s_10ep.pt
+  nn_model_path: nn_models/30ep_yellow_empty.pt
   detector: yolo
 
 tf_start_pose:
