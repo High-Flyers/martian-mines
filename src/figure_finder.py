@@ -161,11 +161,6 @@ class FigureFinder:
         self.last_telem["longitude"] = msg.longitude
         self.last_telem["altitude_amsl"] = msg.altitude
 
-        rospy.loginfo_throttle(
-            10,
-            f"Received global position: Latitude: {msg.latitude}, Longitude: {msg.longitude}, Altitude(AMSL): {msg.altitude}",
-        )
-
     def compass_callback(self, msg):
         self.last_telem["heading"] = msg.data
 

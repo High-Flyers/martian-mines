@@ -23,6 +23,9 @@ class States(Enum):
     RETURN = auto()
 
 
+LANDED_WAIT_TIME = 30
+
+
 class MissionController(Machine):
     def __init__(self):
         self.__init_state_machine()
@@ -72,11 +75,14 @@ class MissionController(Machine):
         return self.target_figures is None
 
     def on_enter_INIT(self):
+        rospy.loginfo('State: INIT')
         self.local_home_pose = self.offboard.local_pos
 
         self.takeoff()
 
     def on_enter_TAKEOFF(self):
+        rospy.loginfo('State: TAKEOFF')
+
         def cb_timer_takeoff(_):
             self.offboard.takeoff(self.takeoff_height)
 
@@ -91,10 +97,13 @@ class MissionController(Machine):
         self.offboard.start()
 
     def on_enter_SCANNING(self):
+        rospy.loginfo('State: SCANNING')
         self.client_generate_trajectory()
         self.client_figure_finder_start()
 
     def on_enter_TARGET_FIGURE(self):
+        rospy.loginfo('State: TARGET_FIGURE')
+
         def cb_timer_fly_to_figure(figure: FigureMsg):
             figure_point = [figure.local_x, figure.local_y, self.target_figure_approach_height]
             self.offboard.fly_point(*figure_point, frame_id='start_pose')
@@ -114,6 +123,8 @@ class MissionController(Machine):
         self.offboard.set_offboard_mode()
 
     def on_enter_FIGURE_LANDING(self, target_figure: FigureMsg):
+        rospy.loginfo('State: FIGURE_LANDING')
+
         def cb_figure_landing(target_figure: FigureMsg):
             bboxes = self.bboxes.boxes
 
@@ -127,6 +138,8 @@ class MissionController(Machine):
         self.client_precision_landing_start()
 
     def on_enter_RETURN(self):
+        rospy.loginfo('State: RETURN')
+
         def cb_timer_return(_):
             self.offboard.fly_point(self.local_home_pose.pose.position.x, self.local_home_pose.pose.position.y, self.takeoff_height)
 
@@ -140,6 +153,7 @@ class MissionController(Machine):
 
     def cb_precision_landing_finished(self, _):
         self.timer_figure_landing.shutdown()
+        rospy.sleep(LANDED_WAIT_TIME)
         self.takeoff()
 
     def cb_trajectory_tracker_finished(self, _):
