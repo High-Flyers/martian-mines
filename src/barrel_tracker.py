@@ -1,5 +1,6 @@
 import rospy
 import numpy as np
+import time
 
 from std_srvs.srv import Trigger, TriggerResponse
 from std_msgs.msg import Empty
@@ -46,12 +47,28 @@ class BarrelTracker:
                 continue
             bbox = bbox.bbox
             self.diff_vector = (np.array([bbox.center.x, bbox.center.y]) - self.camera_center) / self.camera_center
+
+            if np.sum(self.diff_vector ** 2) < 0.01:
+                if self.hover_start is None:
+                    self.hover_start = time.time()
+                if time.time() - self.hover_start > 4: # hover for 4s before finishing
+                    self.finish()
+                    return
+            else:
+                self.hover_start = None
+
             rospy.loginfo("diff vector: " + str(self.diff_vector))
             self.diff_vector = np.array([-self.diff_vector[1], -self.diff_vector[0]])
             rospy.loginfo("transformed diff vector: " + str(self.diff_vector))
             velocities = self.get_velocities(self.diff_vector)
             rospy.loginfo("velocities" + str(velocities))
             self.offboard.fly_velocity(*velocities, vz=0, frame_id="base_link")
+
+    def finish(self):
+        self.bboxes_sub.unregister()
+        self.offboard.set_hold_mode()
+        self.finished_pub.publish(Empty())
+        return
 
     def get_velocities(self, target_vector):
         distance = np.linalg.norm(target_vector)
