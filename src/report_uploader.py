@@ -46,7 +46,7 @@ class UploadNode:
         }
 
     def get_figure_request_data(self, figure: FigureMsg):
-        x, y = self.coordinate_scaler.scale(figure.local_y, figure.local_x)
+        x, y = self.coordinate_scaler.scale(-figure.local_y, figure.local_x)
         return {
             "x": x,
             "y": y,
