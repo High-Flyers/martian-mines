@@ -32,13 +32,11 @@ class Figure:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def to_msg(self, status: str = ""):
+    def to_msg(self, status: str = "", confirmed: bool = False):
         fig_msg = FigureMsg()
-        fig_msg.id = self.group_id
+        fig_msg.id = self.group_id if confirmed else -1
         fig_msg.local_x = self.local_frame_coords[0]
         fig_msg.local_y = self.local_frame_coords[1]
         fig_msg.type = self.determined_type
-        fig_msg.status = self.status
-        if status != "":
-            fig_msg.status = status
+        fig_msg.status = self.status if status == "" else status
         return fig_msg

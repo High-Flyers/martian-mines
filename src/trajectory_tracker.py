@@ -3,7 +3,6 @@ import numpy as np
 
 from nav_msgs.msg import Path
 from std_msgs.msg import Empty
-from std_srvs.srv import Trigger
 from drone.offboard import Offboard
 from geometry_msgs.msg import Point
 from trajectory.trajectory import Trajectory

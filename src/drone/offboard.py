@@ -1,14 +1,34 @@
 import rospy
 import numpy as np
 
-from geometry_msgs.msg import PoseStamped, TwistStamped
-from mavros_msgs.srv import CommandBool, SetMode, SetModeResponse, ParamSet, ParamSetRequest, ParamSetResponse
+from geometry_msgs.msg import TwistStamped
+from mavros_msgs.srv import (CommandBool, SetMode, SetModeResponse, ParamSet, ParamSetRequest, ParamSetResponse)
 from mavros_msgs.msg import ExtendedState
 from std_msgs.msg import Float64
+from tf2_ros import Buffer, TransformListener
+from tf2_geometry_msgs import PoseStamped
+
+
+def point_to_pose_stamped(x, y, z, frame_id: str = "map") -> PoseStamped:
+    pose = PoseStamped()
+    pose.header.stamp = rospy.Time.now()
+    pose.header.frame_id = frame_id
+    pose.pose.position.x = x
+    pose.pose.position.y = y
+    pose.pose.position.z = z
+
+    return pose
+
+
+def pose_stamped_to_point(pose: PoseStamped):
+    return pose.pose.position.x, pose.pose.position.y, pose.pose.position.z
 
 
 class Offboard():
     def __init__(self) -> None:
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer)
+
         self.pub_setpoint_local = rospy.Publisher("mavros/setpoint_position/local", PoseStamped, queue_size=1)
         self.pub_setpoint_velocity = rospy.Publisher('mavros/setpoint_velocity/cmd_vel', TwistStamped, queue_size=1)
         self.sub_local_pos = rospy.Subscriber("mavros/local_position/pose", PoseStamped, self.callback_local_pos)
@@ -41,24 +61,37 @@ class Offboard():
     def disarm(self):
         self.client_arming(False)
 
+    def land(self):
+        self.client_set_mode(custom_mode="AUTO.LAND")
+
+    def return_home(self):
+        self.client_set_mode(custom_mode="AUTO.RTL")
+
     def set_mission_mode(self):
         self.client_set_mode(custom_mode="AUTO.MISSION")
-    
-    def set_hold_mode(self):
-        self.client_set_mode(custom_mode="AUTO.LOITER")
 
-    def set_offboard_mode(self):
-        self.client_set_mode(custom_mode="OFFBOARD")
+    def set_hold_mode(self) -> SetModeResponse:
+        return self.client_set_mode(custom_mode="AUTO.LOITER")
+
+    def set_offboard_mode(self) -> SetModeResponse:
+        return self.client_set_mode(custom_mode="OFFBOARD")
 
     def set_precision_landing_mode(self) -> SetModeResponse:
         return self.client_set_mode(custom_mode="AUTO.PRECLAND")
 
     def is_takeoff_finished(self, height, epsilon=0.1):
         curr_position = self.local_pos.pose.position
-        return self.is_point_reached(curr_position.x, curr_position.y, height, epsilon)
+        return self.is_point_reached(curr_position.x, curr_position.y, height, epsilon=epsilon)
 
-    def is_point_reached(self, x, y, z, epsilon=0.1):
-        diff_vector = [x - self.local_pos.pose.position.x, y - self.local_pos.pose.position.y, z - self.local_pos.pose.position.z]
+    def is_point_reached(self, x, y, z, frame_id="map", epsilon=0.1):
+        pose = point_to_pose_stamped(x, y, z, frame_id)
+
+        if frame_id != "map":
+            pose = self.tf_buffer.transform(pose, "map")
+
+        x, y, z = pose_stamped_to_point(pose)
+        local_x, local_y, local_z = pose_stamped_to_point(self.local_pos)
+        diff_vector = [x - local_x, y - local_y, z - local_z]
         distance = np.linalg.norm(diff_vector)
 
         return distance < epsilon
@@ -66,13 +99,11 @@ class Offboard():
     def is_landed(self):
         return self.extended_state.landed_state == ExtendedState.LANDED_STATE_ON_GROUND
 
-    def fly_point(self, x, y, z):
-        pose = PoseStamped()
-        pose.header.stamp = rospy.Time.now()
-        pose.header.frame_id = "map"
-        pose.pose.position.x = x
-        pose.pose.position.y = y
-        pose.pose.position.z = z
+    def fly_point(self, x, y, z, frame_id="map"):
+        pose = point_to_pose_stamped(x, y, z, frame_id)
+
+        if frame_id != "map":
+            pose = self.tf_buffer.transform(pose, "map")
 
         self.pub_setpoint_local.publish(pose)
 
@@ -92,7 +123,7 @@ class Offboard():
 
     def callback_extended_state(self, msg: ExtendedState):
         self.extended_state = msg
-    
+
     def callback_rel_alt(self, msg: Float64):
         self.rel_alt = msg.data
 

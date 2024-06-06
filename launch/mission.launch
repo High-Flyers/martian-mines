@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="real_world" default="false" />
+    <arg name="no_start_pose" default="false" />
+
+    <include file="$(find martian_mines)/launch/core.launch">
+        <arg name="real_world" value="$(arg real_world)" />
+        <arg name="no_start_pose" value="$(arg no_start_pose)" />
+    </include>
+
+
+    <group ns="uav0">
+        <remap if="$(arg real_world)" from="camera/image_raw" to="color/image_raw"/>
+        <remap if="$(arg real_world)" from="camera/camera_info" to="color/camera_info" />
+        <node type="precision_landing.py" name="precision_landing" pkg="martian_mines" output="screen"/>
+        <node type="trajectory_generator.py" name="trajectory_generator" pkg="martian_mines" output="screen" />
+        <node type="trajectory_tracker.py" name="trajectory_tracker" pkg="martian_mines" output="screen">
+            <remap from="trajectory_tracker/path" to="trajectory_generator/path"/>
+        </node>
+        <node type="detection.py" name="detection" pkg="martian_mines" output="screen" />
+        <node type="figure_finder.py" name="figure_finder" pkg="martian_mines" output="screen" />
+        <node type="report_uploader.py" name="report_uploader" pkg="martian_mines" output="screen" />
+        <node type="mission_controller.py" name="mission_controller" pkg="martian_mines" output="screen" />
+    </group>
+
+    <include file="$(find martian_mines)/launch/figures_vis.launch" />
+</launch>

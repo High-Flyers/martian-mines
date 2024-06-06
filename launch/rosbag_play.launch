@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+    <!--px4 environment variables-->
+    <arg name="real_world" default="true" />
+    <arg name="bag_file" default="" />
+    <arg name="config_file" default="$(find martian_mines)/config/sim.yaml" unless="$(arg real_world)"/>
+    <arg name="config_file" default="$(find martian_mines)/config/real.yaml" if="$(arg real_world)"/>
+    <arg name="no_start_pose" default="false" />
+    <param name="/use_sim_time" value="true" />
+
+    <!-- start pose broadcaster - for development it is more comportable to run it separately-->
+    <node pkg="rosbag" type="play" name="player" output="screen" args="--clock -l $(find martian_mines)/data/$(arg bag_file)"/>
+    <group ns="uav0">
+        <rosparam command="load" file="$(arg config_file)"/>
+        <remap if="$(arg real_world)" from="camera/image_raw" to="color/image_raw"/>
+        <remap if="$(arg real_world)" from="camera/camera_info" to="color/camera_info" />
+        <node type="detection.py" name="detection" pkg="martian_mines" output="screen">
+        </node>
+        <node type="figure_finder.py" name="figure_finder" pkg="martian_mines" output="screen">
+            <param name="config_file_path" value="$(arg config_file)" />
+        </node>
+        <node pkg="rosservice" type="rosservice" name="figure_finder_start" args="call --wait figure_finder/start" />
+    </group>
+
+</launch>

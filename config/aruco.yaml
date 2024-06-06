@@ -1,4 +1,4 @@
 real_world: false
 detection:
-  nn_model_path: nn_models/30ep_yellow_empty.pt
+  nn_model_path: nn_models/best_barrel_unity.pt
   detector: aruco

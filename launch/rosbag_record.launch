@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    <include file="$(find martian_mines)/launch/realsense.launch"></include>
+
+    <!-- launch mavros -->
+    <include ns="uav0" file="$(find mavros)/launch/px4.launch">
+        <arg name="fcu_url" value="udp://:14550@localhost:14550" />
+    </include>
+    <rosparam param="uav0/mavros/local_position/tf/send">true</rosparam>
+    <!-- tf -->
+    <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
+        args="0.18 0 -0.1 1.571 3.14 0 base_link camera_link" />
+</launch>

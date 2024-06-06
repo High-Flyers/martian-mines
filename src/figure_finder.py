@@ -8,7 +8,6 @@ from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image, NavSatFix, CameraInfo
 from std_msgs.msg import Float64
-from geometry_msgs.msg import PointStamped
 from std_srvs.srv import Trigger, TriggerResponse
 from figure.figure import Figure
 from figure_managment.figure_collector import FigureCollector
@@ -38,8 +37,9 @@ class FigureFinder:
         self.bbox_mapper = BBoxMapper(camera_info_msg)
 
         self.confirmed_figures_pub = rospy.Publisher(
-            "detection/confirmed_figures", FigureMsgList, queue_size=10)
-        self.debug_figure_pos_pub = rospy.Publisher('detection/debug_figure_pos', PointStamped, queue_size=10)
+            "figure_finder/confirmed_figures", FigureMsgList, queue_size=10)
+        self.detected_figures_pub = rospy.Publisher(
+            "figure_finder/detected_figures", FigureMsgList, queue_size=10)
 
         image_sub = message_filters.Subscriber("camera/image_raw", Image)
         bboxes_sub = message_filters.Subscriber('detection/bboxes', BoundingBoxLabeledList)
@@ -122,19 +122,19 @@ class FigureFinder:
 
         return figures
 
-    def publish_confirmed_figures(self, confirmed_figures: List[Figure]):
-        confirmed_msg_list = [f.to_msg(status="on_ground") for f in confirmed_figures]
-        figure_msg_list = FigureMsgList()
-        figure_msg_list.figures = confirmed_msg_list
-        self.confirmed_figures_pub.publish(figure_msg_list)
+    def figures_to_msg_list(self, figures: List[Figure], confirmed=False) -> FigureMsgList:
+        figures_msg_list = [f.to_msg("on_ground", confirmed) for f in figures]
+        msg = FigureMsgList()
+        msg.figures = figures_msg_list
+        return msg
 
-    def publish_debug_figure_pos(self, figure: Figure):
-        point = PointStamped()
-        point.header.frame_id = 'start_pose'
-        point.point.x = figure.local_frame_coords[0]
-        point.point.y = figure.local_frame_coords[1]
-        point.point.z = figure.local_frame_coords[2]
-        self.debug_figure_pos_pub.publish(point)
+    def publish_confirmed_figures(self, confirmed_figures: List[Figure]):
+        figures_msg = self.figures_to_msg_list(confirmed_figures, confirmed=True)
+        self.confirmed_figures_pub.publish(figures_msg)
+
+    def publish_detected_figures(self, detected_figures: List[Figure]):
+        figures_msg = self.figures_to_msg_list(detected_figures)
+        self.detected_figures_pub.publish(figures_msg)
 
     def map_figures_to_ground(self, figures: List[Figure], transform_time):
         mapped_figures = []
@@ -153,10 +153,7 @@ class FigureFinder:
         frame = self.bridge.imgmsg_to_cv2(image, "bgr8")
         figures = self.create_figures(frame, bboxes_msg.boxes, self.figure_operations_config)
         figures = self.map_figures_to_ground(figures, bboxes_msg.header.stamp)
-
-        if figures:
-            self.publish_debug_figure_pos(figures[0])
-
+        self.publish_detected_figures(figures)
         self.figure_colletor.update(figures)
 
     def global_pos_callback(self, msg):

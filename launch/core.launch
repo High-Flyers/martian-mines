@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<launch>
+    <!--px4 environment variables-->
+    <env name="PX4_SIM_SPEED_FACTOR" value="1" />
+    <arg name="real_world" default="false" />
+    <arg name="config_file" default="$(find martian_mines)/config/sim.yaml" unless="$(arg real_world)"/>
+    <arg name="config_file" default="$(find martian_mines)/config/real.yaml" if="$(arg real_world)"/>
+    <arg name="no_start_pose" default="false" />
+
+    <group if="$(arg real_world)">
+        <!-- launch realsense camera node -->
+        <include file="$(find martian_mines)/launch/realsense.launch"></include>
+
+        <!-- launch mavros -->
+        <include ns="uav0" file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="udp://:14550@localhost:14550" />
+        </include>
+
+        <!-- set mavros params -->
+        <rosparam param="uav0/mavros/local_position/tf/send">true</rosparam>
+        <rosparam command="load" file="$(find martian_mines)/launch/mavros_plugins.yaml"/>
+
+        <!-- tf -->
+        <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
+            args="0.18 0 -0.1 1.571 3.14 0 base_link camera_link" />
+    </group>
+
+    <group unless="$(arg real_world)">
+        <node name="tf_base_link_camera" pkg="tf2_ros" type="static_transform_publisher"
+            args="0 0 0 -1.571 0 -1.571 cgo3_camera_link camera_link" />
+
+        <!-- for dev-->
+        <node name="tf_uber_map" pkg="tf2_ros" type="static_transform_publisher"
+        args="30.5 -18.5 0 0 0 0 map uber_map" />
+    </group>
+
+    <group ns="uav0">
+        <rosparam command="load" file="$(arg config_file)"/>
+        <remap if="$(arg real_world)" from="camera/image_raw" to="color/image_raw"/>
+        <remap if="$(arg real_world)" from="camera/camera_info" to="color/camera_info" />
+        <node type="tf_start_pose.py" name="tf_start_pose" pkg="martian_mines" output="screen" unless="$(arg no_start_pose)"></node>
+    </group>
+</launch>

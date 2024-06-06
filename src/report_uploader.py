@@ -19,7 +19,7 @@ class UploadNode:
         self.drone_data_ts = message_filters.ApproximateTimeSynchronizer([global_pose_sub, alt_sub], queue_size=10, slop=0.1, allow_headerless=True)
         self.drone_data_ts.registerCallback(self.drone_data_callback)
 
-        self.figure_sub = rospy.Subscriber("detection/confirmed_figures", FigureMsgList, self.figure_callback)
+        self.figure_sub = rospy.Subscriber("figure_finder/confirmed_figures", FigureMsgList, self.figure_callback)
 
         start_global_pose = rospy.wait_for_message("mavros/global_position/global", NavSatFix)
         start_heading = rospy.wait_for_message("mavros/global_position/compass_hdg", Float64)
@@ -52,7 +52,7 @@ class UploadNode:
             "y": y,
             "color": self.get_figure_color(figure),
             "sample_status": figure.status,
-            # "sample_id": figure.id
+            "sample_id": figure.id
         }
 
     def get_figure_color(self, figure):

@@ -1,7 +1,6 @@
 import rospy
 import numpy as np
 
-from gazebo_msgs.msg import ModelStates
 from mavros_msgs.msg import LandingTarget
 from sensor_msgs.msg import CameraInfo
 from drone.offboard import Offboard
@@ -29,8 +28,7 @@ class PrecisionLanding():
     def __init__(self) -> None:
         rospy.init_node('precision_landing_node')
 
-        self.camera_objects = ModelStates()
-        self.camera_link = rospy.get_param('~camera_link', 'cgo3_camera_link')
+        self.camera_link = rospy.get_param('~camera_link', 'camera_link')
         self.offboard = Offboard()
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer)
@@ -61,12 +59,12 @@ class PrecisionLanding():
         max_search_attempts = rospy.get_param('~max_search_attempts', 3)
         search_timeout = rospy.get_param('~search_timeout', 10.0)
 
-        self.offboard.set_param('PLD_BTOUT', landing_target_timeout)
-        self.offboard.set_param('PLD_SRCH_ALT', search_altitude)
-        self.offboard.set_param('PLD_FAPPR_ALT', final_approach_altitude)
-        self.offboard.set_param('PLD_HACC_RAD', horizontal_acceptence_radius)
-        self.offboard.set_param('PLD_MAX_SRCH', max_search_attempts)
-        self.offboard.set_param('PLD_SRCH_TOUT', search_timeout)
+        # self.offboard.set_param('PLD_BTOUT', landing_target_timeout)
+        # self.offboard.set_param('PLD_SRCH_ALT', search_altitude)
+        # self.offboard.set_param('PLD_FAPPR_ALT', final_approach_altitude)
+        # self.offboard.set_param('PLD_HACC_RAD', horizontal_acceptence_radius)
+        # self.offboard.set_param('PLD_MAX_SRCH', max_search_attempts)
+        # self.offboard.set_param('PLD_SRCH_TOUT', search_timeout)
 
     def __init_landing_target(self) -> LandingTarget:
         landing_target = LandingTarget()
@@ -113,9 +111,9 @@ class PrecisionLanding():
         pose = PoseStamped()
         pose.header.stamp = rospy.Time(0)
         pose.header.frame_id = self.camera_link
-        pose.pose.position.x = position[2]
-        pose.pose.position.y = -position[0]
-        pose.pose.position.z = -position[1]
+        pose.pose.position.x = position[0]
+        pose.pose.position.y = position[1]
+        pose.pose.position.z = position[2]
 
         return pose
 
