@@ -9,7 +9,7 @@ from tf2_ros import Buffer, TransformListener
 from tf2_geometry_msgs import PoseStamped
 
 from drone.scan_trajectory import ScanTrajectory
-from utils.environment import Environemnt
+from utils.environment import Environment
 
 
 class TrajectoryGenerator():
@@ -39,7 +39,7 @@ class TrajectoryGenerator():
         overlap = float(rospy.get_param('~overlap', 0.1))
         offset = float(rospy.get_param('~offset', 1))
 
-        environment = Environemnt(0, 0)
+        environment = Environment(0, 0)
         polygon_coords = [environment.left_lower_ball, environment.left_upper_ball, environment.right_upper_ball, environment.right_lower_ball]
         trajectory = ScanTrajectory(polygon_coords, self.camera_model.fovX(), self.camera_model.fovY())
         trajectory.set_altitude(altitude)

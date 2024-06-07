@@ -26,7 +26,7 @@ class TrajectoryTracker:
 
         self.offboard = Offboard()
         self.trajectory = Trajectory()
-        self.pure_pursiut = PurePursuit(lookahead_distance=self.radius)
+        self.pure_pursuit = PurePursuit(lookahead_distance=self.radius)
 
         self.pub_finished = rospy.Publisher('trajectory_tracker/finished', Empty, queue_size=1)
         self.sub_trajectory = rospy.Subscriber('trajectory_tracker/path', Path, self.callback_trajectory)
@@ -39,13 +39,13 @@ class TrajectoryTracker:
 
     def callback_timer(self, _):
         current_pose = point_to_np(self.offboard.local_pos.pose.position)
-        self.pure_pursiut.set_trajectory(self.trajectory)
-        self.pure_pursiut.step(current_pose)
+        self.pure_pursuit.set_trajectory(self.trajectory)
+        self.pure_pursuit.step(current_pose)
 
-        velocities = self.pure_pursiut.get_velocities(current_pose, self.velocity)
+        velocities = self.pure_pursuit.get_velocities(current_pose, self.velocity)
         self.offboard.fly_velocity(*velocities)
 
-        if self.pure_pursiut.is_last(current_pose):
+        if self.pure_pursuit.is_last(current_pose):
             self.offboard.set_hold_mode()
             self.pub_finished.publish()
             self.timer.shutdown()

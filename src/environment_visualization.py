@@ -7,13 +7,13 @@ from visualization_msgs.msg import MarkerArray, Marker
 from geometry_msgs.msg import Pose, Vector3
 from std_msgs.msg import Header, ColorRGBA
 
-from utils.environment import Environemnt
+from utils.environment import Environment
 
 
 class EnvironmentVisualization:
     def __init__(self) -> None:
         self.markers_pub = rospy.Publisher("environment_visualization/markers", MarkerArray, queue_size=1, latch=True)
-        self.env = Environemnt(0, 0)
+        self.env = Environment(0, 0)
         self.poses = (
             self.env.left_central_ball, self.env.left_lower_ball, self.env.left_upper_ball,
             self.env.middle_central_ball, self.env.middle_lower_ball, self.env.middle_upper_ball,
