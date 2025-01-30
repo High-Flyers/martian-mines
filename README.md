@@ -1,5 +1,17 @@
-# martian-mines
-Our system for 2024 Droniada Challenge competition Martian Mines category.
+# Martian Mines
+Our system for the 2024 Droniada Challenge competition in the Martian Mines category.
+
+### Overview
+The Martian Mines project is designed to participate in the 2024 Droniada Challenge. It involves a system that integrates various components to detect and manage objects in a simulated Martian environment. The system uses ROS (Robot Operating System) and includes functionalities for object detection, trajectory tracking, and precision landing.
+
+### Features
+- **Object Detection:** Utilizes YOLO and ArUco markers for detecting objects in the environment.
+- **Trajectory Tracking:** Implement pure pursuit alogrithm.
+- **Precision Landing:** Use of PX4 precision landing mode to land on detected objects.
+- **RealSense Integration:** Supports RealSense cameras for real-world applications.
+- **RVIZ Visualization:** Real-time insights of the mission and the environment.
+- **Mission Control:** State machine to control flow of different nodes.
+- **ROS Integration:** Fully integrated with ROS for communication and control.
 
 ## Docker
 Build martian mines system image (optional) - if the newest image is not avalible on docker hub or you introduced some modifications in Dockerfile. 
