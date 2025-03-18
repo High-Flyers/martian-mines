@@ -30,28 +30,5 @@ To execute offboard example, open terminal in vscode and run:
 ```bash
 ros2 run offboard offboard_example
 ```
-### TODO  List
-- Nodes
-  - [x] bbox_publisher
-  - [x] detection
-  - [x] detection visualization
-  - [ ] environment_visualization
-  - [ ] figure_finder
-  - [ ] precision_landing
-  - [ ] tf_start_pose
-  - [ ] trajectory_generator
-  - [ ] trajectory_tracker
-
-
-- Other classes/files etc
-  - [ ] detector package
-    - [x] aruco detector
-    - [ ] yolo detector
-
-
-- NOT tested yet
-  - color_detection
-  - data_collector
-  - ...
 ### Throubleshoting
 If you will encounter a problem with "xcb" (GUI applications won't open) just run `xhost +local:docker` on your host machine.
