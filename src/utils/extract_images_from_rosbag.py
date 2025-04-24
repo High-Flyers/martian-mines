@@ -3,7 +3,7 @@ import rospy
 import rosbag
 import cv2
 from cv_bridge import CvBridge
-from cv_bridge import CvBridgeError
+from cv_br
 import os
 
 class ImageFromBag:
@@ -35,7 +35,6 @@ class ImageFromBag:
 
         out.release()
         print("Video saved successfully")
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Extract images from a ROS bag file.')
